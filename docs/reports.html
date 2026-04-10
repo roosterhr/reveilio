@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PDF reports | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 &middot; docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="job-descriptions.html">Job descriptions</a></li>
+        <li><a href="resume-parsing.html">Resume parsing</a></li>
+        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a class="active" href="reports.html">PDF reports</a></li>
+        <li><a href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>PDF reports</h1>
+    <p class="subtitle">Export analysis results as professional PDF documents.</p>
+
+    <h2>Two report types</h2>
+    <p>Reveilio ships with two PDF report generators, both accessible as one-line function calls:</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#rp1)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="rp1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></div>
+        <h3>Candidate report</h3>
+        <p>A detailed multi-section report for a single candidate. Includes the executive summary, detailed metrics table, strengths and weaknesses, career flags, experience analysis, KPIs, AI reasoning, and relevancy metrics.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#rp2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="rp2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Batch ranking report</h3>
+        <p>A summary table showing all candidates ranked by score with their names, scores, recommendations, and years of experience. Ideal for presenting shortlists to hiring managers.</p>
+      </div>
+    </div>
+
+    <h2>Saving a single candidate report</h2>
+<pre><code>result = reveilio.analyze_resume(<span class="tok-s">"resumes/alice.pdf"</span>, jd)
+
+<span class="tok-c"># Save the detailed report as a PDF</span>
+path = reveilio.save_report_pdf(result, <span class="tok-s">"reports/alice_evaluation.pdf"</span>)
+<span class="tok-f">print</span>(<span class="tok-s">f"Report saved to {path}"</span>)</code></pre>
+    <p>Parent directories are created automatically. The function returns the
+      <code>pathlib.Path</code> of the written file.</p>
+
+    <h3>What the candidate report contains</h3>
+    <ol>
+      <li><strong>Header:</strong> report title, role name, candidate name, overall score, and recommendation.</li>
+      <li><strong>Executive Summary:</strong> the AI-generated critique (approx. 120 words).</li>
+      <li><strong>AI Fit Suggestions:</strong> alternative roles the candidate might suit (if available).</li>
+      <li><strong>Detailed Metrics:</strong> a table with each scoring dimension, its score, and reasoning.</li>
+      <li><strong>Key Insights:</strong> side-by-side table of strengths (green) and weaknesses (red).</li>
+      <li><strong>Career Red Flags:</strong> any flagged concerns about the candidate's history.</li>
+      <li><strong>Experience Relevance Analysis:</strong> deep dive into how work history aligns with the role.</li>
+      <li><strong>Key Performance Indicators:</strong> quantified achievements from the resume.</li>
+      <li><strong>AI Matching Reasoning:</strong> step-by-step logic behind the overall score.</li>
+      <li><strong>Relevancy Metrics:</strong> table with metrics like average tenure, each rated high/medium/low.</li>
+    </ol>
+
+    <h2>Saving a batch ranking report</h2>
+<pre><code>results = reveilio.analyze_folder(<span class="tok-s">"./resumes"</span>, jd)
+
+<span class="tok-c"># Save the ranking summary</span>
+path = reveilio.save_batch_report_pdf(results, <span class="tok-s">"reports/ranking.pdf"</span>)
+<span class="tok-f">print</span>(<span class="tok-s">f"Ranking saved to {path}"</span>)</code></pre>
+
+    <h3>What the batch report contains</h3>
+    <p>A single styled table with columns: Rank, Candidate Name, Score, Recommendation,
+      and Years of Experience. The role title is printed at the top. Rows alternate in
+      color for readability.</p>
+
+    <h2>Exporting reports for all shortlisted candidates</h2>
+    <p>A common pattern: generate individual reports for shortlisted candidates and a
+      batch summary for the full set.</p>
+<pre><code>results = reveilio.analyze_folder(<span class="tok-s">"./resumes"</span>, jd)
+
+<span class="tok-c"># Batch ranking for everyone</span>
+reveilio.save_batch_report_pdf(results, <span class="tok-s">"reports/ranking.pdf"</span>)
+
+<span class="tok-c"># Individual reports for shortlisted candidates only</span>
+shortlist = [r <span class="tok-k">for</span> r <span class="tok-k">in</span> results <span class="tok-k">if</span> r.recommendation == <span class="tok-s">"Shortlist"</span>]
+<span class="tok-k">for</span> r <span class="tok-k">in</span> shortlist:
+    name = r.candidate_data.name.replace(<span class="tok-s">" "</span>, <span class="tok-s">"_"</span>)
+    reveilio.save_report_pdf(r, <span class="tok-s">f"reports/{name}.pdf"</span>)</code></pre>
+
+    <h2>Getting raw PDF bytes (for web responses)</h2>
+    <p>If you are building a web application and need to stream the PDF in an HTTP
+      response rather than write it to disk, use the lower-level generator functions:</p>
+<pre><code><span class="tok-k">from</span> reveilio.reports.pdf <span class="tok-k">import</span> generate_candidate_report, generate_batch_report
+
+<span class="tok-c"># Single candidate: returns io.BytesIO</span>
+buf = generate_candidate_report(result.model_dump())
+pdf_bytes = buf.getvalue()
+
+<span class="tok-c"># Batch: returns io.BytesIO</span>
+buf = generate_batch_report([r.model_dump() <span class="tok-k">for</span> r <span class="tok-k">in</span> results])
+pdf_bytes = buf.getvalue()
+
+<span class="tok-c"># Example: FastAPI response</span>
+<span class="tok-k">from</span> fastapi.responses <span class="tok-k">import</span> Response
+<span class="tok-k">return</span> Response(pdf_bytes, media_type=<span class="tok-s">"application/pdf"</span>)</code></pre>
+
+    <h2>Markdown formatting in reports</h2>
+    <p>The LLM sometimes wraps important terms in <code>**double asterisks**</code>
+      (Markdown bold). The PDF renderer converts these to bold text automatically, so
+      key skills and achievements appear highlighted in the output.</p>
+
+    <h2>Customizing the report layout</h2>
+    <p>The report generator is built with ReportLab. To customize colors, fonts, or
+      sections, copy <code>src/reveilio/reports/pdf.py</code> into your project and modify
+      it directly. The function signatures remain the same, so you can swap your version
+      in without changing any calling code.</p>
+
+    <p>Continue to <a href="guides.html">Guides</a>.</p>
+    <footer>&copy; 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

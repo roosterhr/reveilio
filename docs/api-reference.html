@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>API reference | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 · docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="database.html">Database storage</a></li>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a class="active" href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>API reference</h1>
+    <p class="subtitle">Every public symbol reveilio exposes.</p>
+
+    <h2>Top-level functions</h2>
+
+    <h3>reveilio.configure</h3>
+    <div class="sig">
+<span class="name">reveilio.configure</span>(provider: <span class="type">"gemini" | "openai" | "azure" | "ollama"</span>,
+    api_key: <span class="type">str | None</span> = None,
+    model: <span class="type">str | None</span> = None,
+    *,
+    azure_endpoint: <span class="type">str | None</span> = None,
+    azure_deployment: <span class="type">str | None</span> = None,
+    azure_api_version: <span class="type">str</span> = "2024-02-15-preview",
+    base_url: <span class="type">str | None</span> = None,
+    weights: <span class="type">dict[str, float] | None</span> = None,
+) -&gt; <span class="type">ReveilioConfig</span>
+    </div>
+    <p>Set the process-global LLM configuration. Any argument left as <code>None</code>
+      falls back to the matching environment variable. See
+      <a href="configuration.html">Configuration</a> for the full list.</p>
+
+    <h3>reveilio.get_config</h3>
+    <div class="sig"><span class="name">reveilio.get_config</span>() -&gt; <span class="type">ReveilioConfig</span></div>
+    <p>Return the active configuration. Creates one automatically from environment
+      variables if <code>configure()</code> was never called. Raises
+      <code>RuntimeError</code> if no credentials are available.</p>
+
+    <h3>reveilio.analyze_resume</h3>
+    <div class="sig">
+<span class="name">reveilio.analyze_resume</span>(resume: <span class="type">Resume | str | Path | bytes</span>,
+    jd: <span class="type">JobDescription | str | Path</span>) -&gt; <span class="type">AnalysisResult</span>
+    </div>
+    <p>Analyze a single resume against a JD. Both <code>resume</code> and <code>jd</code>
+      accept a file path, a free-text string, or a pre-built object.</p>
+
+    <h3>reveilio.analyze_folder</h3>
+    <div class="sig">
+<span class="name">reveilio.analyze_folder</span>(folder: <span class="type">str | Path</span>,
+    jd: <span class="type">JobDescription | str | Path</span>,
+    *,
+    extensions: <span class="type">tuple[str, ...]</span> = (".pdf", ".docx", ".doc", ".txt"),
+    max_workers: <span class="type">int</span> = 4,
+    recursive: <span class="type">bool</span> = False,
+) -&gt; <span class="type">list[AnalysisResult]</span>
+    </div>
+    <p>Walk a folder, analyze every matching file in parallel, and return results sorted
+      by <code>overall_score</code> descending with a 1-based <code>rank</code> set.</p>
+
+    <h3>reveilio.score</h3>
+    <div class="sig">
+<span class="name">reveilio.score</span>(resume: <span class="type">ResumeLike</span>, jd: <span class="type">JDLike</span>) -&gt; <span class="type">AnalysisResult</span>
+    </div>
+    <p>Lower-level alias for <code>analyze_resume</code>. Use it when you want to be
+      explicit that no file discovery or ranking is happening.</p>
+
+    <h3>reveilio.save_report_pdf</h3>
+    <div class="sig">
+<span class="name">reveilio.save_report_pdf</span>(result: <span class="type">AnalysisResult | dict</span>,
+    path: <span class="type">str | Path</span>) -&gt; <span class="type">Path</span>
+    </div>
+    <p>Render a detailed per-candidate PDF report and write it to <code>path</code>.
+      Parent directories are created automatically. Returns the written path.</p>
+
+    <h3>reveilio.save_batch_report_pdf</h3>
+    <div class="sig">
+<span class="name">reveilio.save_batch_report_pdf</span>(results: <span class="type">list[AnalysisResult | dict]</span>,
+    path: <span class="type">str | Path</span>) -&gt; <span class="type">Path</span>
+    </div>
+    <p>Render a batch ranking summary PDF (a table of candidates with scores and
+      recommendations). Returns the written path.</p>
+
+    <h2>Classes</h2>
+
+    <h3>JobDescription</h3>
+    <p>Wraps the raw text of a JD plus a lazily-parsed structured dictionary.</p>
+    <table>
+      <thead><tr><th>Constructor</th><th>Accepts</th></tr></thead>
+      <tbody>
+        <tr><td><code>JobDescription.from_text(text)</code></td><td>Free-text JD</td></tr>
+        <tr><td><code>JobDescription.from_file(path)</code></td><td>.pdf, .docx, .doc, or .txt on disk</td></tr>
+        <tr><td><code>JobDescription.from_bytes(data, filename)</code></td><td>In-memory bytes; <code>filename</code> supplies the extension</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>Attribute</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>text</code></td><td><code>str</code></td><td>Raw extracted text.</td></tr>
+        <tr><td><code>source</code></td><td><code>str | None</code></td><td>File path or <code>"text"</code>.</td></tr>
+        <tr><td><code>parsed</code></td><td><code>dict</code></td><td>LLM-parsed structured JD. Computed on first access, then cached.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Resume</h3>
+    <p>Wraps the extracted plain text of a candidate's resume. No LLM parse occurs until
+      you hand the resume to <code>analyze_resume</code> or <code>score</code>.</p>
+    <table>
+      <thead><tr><th>Constructor</th><th>Accepts</th></tr></thead>
+      <tbody>
+        <tr><td><code>Resume.from_text(text, filename="resume.txt")</code></td><td>Free text</td></tr>
+        <tr><td><code>Resume.from_file(path)</code></td><td>.pdf, .docx, .doc, or .txt</td></tr>
+        <tr><td><code>Resume.from_bytes(data, filename)</code></td><td>In-memory bytes</td></tr>
+      </tbody>
+    </table>
+
+    <h3>ReveilioConfig</h3>
+    <p>Dataclass returned by <code>configure()</code>. You normally do not construct this
+      yourself.</p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Default</th></tr></thead>
+      <tbody>
+        <tr><td><code>provider</code></td><td><code>Literal["gemini","openai","azure","ollama"]</code></td><td><code>"gemini"</code></td></tr>
+        <tr><td><code>api_key</code></td><td><code>str | None</code></td><td><code>None</code></td></tr>
+        <tr><td><code>model</code></td><td><code>str | None</code></td><td>provider-specific default</td></tr>
+        <tr><td><code>azure_endpoint</code></td><td><code>str | None</code></td><td><code>None</code></td></tr>
+        <tr><td><code>azure_deployment</code></td><td><code>str | None</code></td><td><code>None</code></td></tr>
+        <tr><td><code>azure_api_version</code></td><td><code>str</code></td><td><code>"2024-02-15-preview"</code></td></tr>
+        <tr><td><code>base_url</code></td><td><code>str | None</code></td><td><code>None</code> (Ollama only)</td></tr>
+        <tr><td><code>weights</code></td><td><code>dict[str, float]</code></td><td>see <a href="configuration.html">Configuration</a></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Result models</h2>
+
+    <h3>AnalysisResult</h3>
+    <p>Pydantic v2 model. All fields are readable. Use <code>.model_dump()</code> to get a
+      plain dictionary.</p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>overall_score</code></td><td><code>float</code></td><td>0 to 100 weighted match.</td></tr>
+        <tr><td><code>confidence_level</code></td><td><code>str</code></td><td>"High", "Medium", or "Low".</td></tr>
+        <tr><td><code>recommendation</code></td><td><code>str</code></td><td>"Shortlist", "Needs Review", or "Not Suitable".</td></tr>
+        <tr><td><code>detailed_scores</code></td><td><code>dict[str, {score, reasoning}]</code></td><td>Per-dimension breakdown.</td></tr>
+        <tr><td><code>jd_analysis</code></td><td><code>dict</code></td><td>Snapshot of the structured JD used.</td></tr>
+        <tr><td><code>ai_summary</code></td><td><code>str</code></td><td>Executive critique (about 120 words).</td></tr>
+        <tr><td><code>strengths</code>, <code>weaknesses</code>, <code>career_flags</code></td><td><code>list[str]</code></td><td>Narrative bullets.</td></tr>
+        <tr><td><code>kpis</code>, <code>relevancy_metrics</code>, <code>suggested_roles</code></td><td>various</td><td>Additional LLM output.</td></tr>
+        <tr><td><code>suggested_questions</code></td><td><code>list[str]</code></td><td>Populated only for Shortlist recommendations.</td></tr>
+        <tr><td><code>candidate_data</code></td><td><code>ResumeData</code></td><td>Structured extraction of the resume.</td></tr>
+        <tr><td><code>rank</code></td><td><code>int | None</code></td><td>Set by <code>analyze_folder</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>ResumeData</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th></tr></thead>
+      <tbody>
+        <tr><td><code>name, email, phone, linkedin, filename</code></td><td><code>str | None</code></td></tr>
+        <tr><td><code>skills, certifications, top_keywords</code></td><td><code>list[str]</code></td></tr>
+        <tr><td><code>experience</code></td><td><code>list[ExperienceItem]</code></td></tr>
+        <tr><td><code>education</code></td><td><code>list[EducationItem]</code></td></tr>
+        <tr><td><code>total_experience</code></td><td><code>float</code> (years)</td></tr>
+        <tr><td><code>career_gaps</code></td><td><code>list[Any]</code></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Environment variables</h2>
+    <table>
+      <thead><tr><th>Variable</th><th>Used by</th></tr></thead>
+      <tbody>
+        <tr><td><code>GEMINI_API_KEY</code> or <code>GOOGLE_API_KEY</code></td><td>Gemini provider</td></tr>
+        <tr><td><code>OPENAI_API_KEY</code></td><td>OpenAI provider</td></tr>
+        <tr><td><code>AZURE_OPENAI_API_KEY</code></td><td>Azure provider</td></tr>
+        <tr><td><code>AZURE_OPENAI_ENDPOINT</code></td><td>Azure provider</td></tr>
+        <tr><td><code>AZURE_OPENAI_DEPLOYMENT</code></td><td>Azure provider</td></tr>
+        <tr><td><code>AZURE_OPENAI_API_VERSION</code></td><td>Azure provider</td></tr>
+        <tr><td><code>OLLAMA_BASE_URL</code></td><td>Ollama provider</td></tr>
+      </tbody>
+    </table>
+
+    <p>Continue to <a href="architecture.html">Architecture</a>.</p>
+    <footer>© 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

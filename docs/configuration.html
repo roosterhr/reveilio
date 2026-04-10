@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Configuration | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 · docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a class="active" href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="job-descriptions.html">Job descriptions</a></li>
+        <li><a href="resume-parsing.html">Resume parsing</a></li>
+        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a href="reports.html">PDF reports</a></li>
+        <li><a href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>Configuration &amp; providers</h1>
+    <p class="subtitle">One function, four providers, no config files.</p>
+
+    <h2>The mental model</h2>
+    <p>
+      Reveilio stores a single process-global <code>ReveilioConfig</code> object. You set
+      it with <code>reveilio.configure(...)</code>, and every other call reads from it.
+      There is no <code>.reveilio.yaml</code>, no <code>Settings</code> class, and no
+      dependency injection.
+    </p>
+    <p>
+      If you never call <code>configure()</code> but an environment variable such as
+      <code>GEMINI_API_KEY</code> or <code>OPENAI_API_KEY</code> is set, reveilio will
+      auto-configure on first use. An explicit <code>configure()</code> call always
+      overrides environment values.
+    </p>
+
+    <h2>Gemini (Google AI Studio)</h2>
+<pre><code>reveilio.configure(
+    provider=<span class="tok-s">"gemini"</span>,
+    api_key=<span class="tok-s">"AIza..."</span>,                   <span class="tok-c"># or leave out and set GEMINI_API_KEY</span>
+    model=<span class="tok-s">"gemini-2.5-flash"</span>,            <span class="tok-c"># optional; this is the default</span>
+)</code></pre>
+    <p>Environment fallback: <code>GEMINI_API_KEY</code> or <code>GOOGLE_API_KEY</code>.</p>
+
+    <h2>OpenAI</h2>
+<pre><code>reveilio.configure(
+    provider=<span class="tok-s">"openai"</span>,
+    api_key=<span class="tok-s">"sk-..."</span>,                    <span class="tok-c"># or OPENAI_API_KEY env var</span>
+    model=<span class="tok-s">"gpt-4o-mini"</span>,                 <span class="tok-c"># or gpt-4o, gpt-4-turbo, etc.</span>
+)</code></pre>
+    <p>Any chat-completions-compatible model ID that your account has access to is supported.</p>
+
+    <h2>Azure OpenAI</h2>
+    <p>Azure requires three additional values: endpoint, deployment name, and (optionally)
+      API version. Note that the <em>model name</em> is the deployment name you configured
+      in the Azure portal.</p>
+<pre><code>reveilio.configure(
+    provider=<span class="tok-s">"azure"</span>,
+    api_key=<span class="tok-s">"..."</span>,                               <span class="tok-c"># AZURE_OPENAI_API_KEY env var</span>
+    azure_endpoint=<span class="tok-s">"https://my-rsrc.openai.azure.com"</span>,
+    azure_deployment=<span class="tok-s">"gpt-4o"</span>,                    <span class="tok-c"># deployment name, not model name</span>
+    azure_api_version=<span class="tok-s">"2024-02-15-preview"</span>,       <span class="tok-c"># optional</span>
+)</code></pre>
+    <p>Environment fallbacks: <code>AZURE_OPENAI_API_KEY</code>, <code>AZURE_OPENAI_ENDPOINT</code>,
+      <code>AZURE_OPENAI_DEPLOYMENT</code>, <code>AZURE_OPENAI_API_VERSION</code>.</p>
+
+    <h2>Ollama (self-hosted and local)</h2>
+<pre><code>reveilio.configure(
+    provider=<span class="tok-s">"ollama"</span>,
+    base_url=<span class="tok-s">"http://localhost:11434"</span>,  <span class="tok-c"># default</span>
+    model=<span class="tok-s">"llama3.2"</span>,                    <span class="tok-c"># or any model you have pulled</span>
+)</code></pre>
+    <p>
+      No API key is used. Environment fallback: <code>OLLAMA_BASE_URL</code>. Be sure to
+      run <code>ollama pull llama3.2</code> (or your chosen model) before invoking reveilio.
+    </p>
+    <div class="warn">
+      <strong>Note:</strong> smaller local models sometimes return JSON that does not
+      match the schema exactly. Reveilio catches these cases and fills in safe defaults,
+      but scores will be less reliable than those produced by a hosted frontier model.
+    </div>
+
+    <h2>Tuning the scoring weights</h2>
+    <p>
+      The default weights sum to 1.0 and reflect a general-purpose hiring rubric:
+    </p>
+    <table>
+      <thead><tr><th>Dimension</th><th>Default weight</th></tr></thead>
+      <tbody>
+        <tr><td>skills</td><td>20%</td></tr>
+        <tr><td>semantic_skills</td><td>20%</td></tr>
+        <tr><td>experience</td><td>25%</td></tr>
+        <tr><td>education</td><td>15%</td></tr>
+        <tr><td>certifications</td><td>10%</td></tr>
+        <tr><td>soft_skills</td><td>5%</td></tr>
+        <tr><td>domain_relevance</td><td>5%</td></tr>
+      </tbody>
+    </table>
+    <p>Hiring for a compliance role? Increase certifications. Hiring for a research lab?
+      Increase education. Pass a custom weights dictionary to <code>configure()</code>:</p>
+<pre><code>reveilio.configure(
+    provider=<span class="tok-s">"openai"</span>,
+    api_key=<span class="tok-s">"sk-..."</span>,
+    weights={
+        <span class="tok-s">"skills"</span>: <span class="tok-n">0.30</span>,
+        <span class="tok-s">"semantic_skills"</span>: <span class="tok-n">0.20</span>,
+        <span class="tok-s">"experience"</span>: <span class="tok-n">0.25</span>,
+        <span class="tok-s">"education"</span>: <span class="tok-n">0.05</span>,
+        <span class="tok-s">"certifications"</span>: <span class="tok-n">0.15</span>,
+        <span class="tok-s">"soft_skills"</span>: <span class="tok-n">0.03</span>,
+        <span class="tok-s">"domain_relevance"</span>: <span class="tok-n">0.02</span>,
+    },
+)</code></pre>
+    <p>The prompt sent to the LLM includes these weights verbatim so the model knows what
+      you are optimizing for.</p>
+
+    <h2>Switching providers at runtime</h2>
+    <p>Call <code>configure()</code> again. The most recent call wins.</p>
+<pre><code>reveilio.configure(provider=<span class="tok-s">"gemini"</span>, api_key=<span class="tok-s">"AIza..."</span>)
+quick_pass = reveilio.analyze_folder(<span class="tok-s">"./resumes"</span>, jd)
+
+reveilio.configure(provider=<span class="tok-s">"openai"</span>, api_key=<span class="tok-s">"sk-..."</span>, model=<span class="tok-s">"gpt-4o"</span>)
+deep_pass  = reveilio.analyze_folder(<span class="tok-s">"./resumes"</span>, jd)</code></pre>
+
+    <p>Continue to <a href="guides.html">Guides</a>.</p>
+    <footer>© 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Architecture | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 · docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="job-descriptions.html">Job descriptions</a></li>
+        <li><a href="resume-parsing.html">Resume parsing</a></li>
+        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a href="reports.html">PDF reports</a></li>
+        <li><a href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a class="active" href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>Architecture</h1>
+    <p class="subtitle">How reveilio is put together, and why it is shaped this way.</p>
+
+    <h2>Module layout</h2>
+<pre><code>src/reveilio/
+├── __init__.py            <span class="tok-c"># public re-exports</span>
+├── config.py              <span class="tok-c"># ReveilioConfig + configure() singleton</span>
+├── models.py              <span class="tok-c"># pydantic result models</span>
+├── api.py                 <span class="tok-c"># sync entry points: analyze_*, score, save_*_pdf</span>
+├── llm/
+│   └── dynamic.py         <span class="tok-c"># provider dispatch: Gemini / OpenAI / Azure / Ollama</span>
+├── parsing/
+│   ├── text_extract.py    <span class="tok-c"># PDF / DOCX / DOC / TXT to plain text</span>
+│   ├── job_description.py <span class="tok-c"># JobDescription + lazy LLM-parsed .parsed</span>
+│   └── resume.py          <span class="tok-c"># Resume input wrapper</span>
+├── scoring/
+│   ├── prompts.py         <span class="tok-c"># system + user prompt builders</span>
+│   └── scorer.py          <span class="tok-c"># calculate_match(): one LLM call, structured output</span>
+└── reports/
+    └── pdf.py             <span class="tok-c"># ReportLab-based candidate + batch PDFs</span>
+</code></pre>
+
+    <h2>Data flow</h2>
+    <div class="flow">
+      <div class="step">extract_text()</div>
+      <div class="arrow">→</div>
+      <div class="step">JobDescription.parsed<br/>(LLM #1)</div>
+      <div class="arrow">→</div>
+      <div class="step">calculate_match()<br/>(LLM #2)</div>
+      <div class="arrow">→</div>
+      <div class="step">AnalysisResult</div>
+      <div class="arrow">→</div>
+      <div class="step">PDF (optional)</div>
+    </div>
+    <p>
+      Each call to <code>analyze_resume</code> makes <strong>at most two LLM calls</strong>:
+      one to parse the JD (skipped on subsequent resumes because
+      <code>JobDescription.parsed</code> is cached), and one combined extract-and-score
+      call for the resume. That second call is the engine. It both extracts structured
+      candidate data and emits the weighted score in a single round trip.
+    </p>
+
+    <h2>Why one combined call?</h2>
+    <p>
+      The original recruitment-bot backend did this in two calls: first a resume-parsing
+      agent, then a scoring agent that consumed the parsed output. That works, but it
+      doubles latency and cost, and the scoring agent never sees the raw resume text that
+      the parser dropped.
+    </p>
+    <p>
+      Reveilio collapses the pair into one prompt with two explicit phases,
+      "PHASE 1: Structured Extraction" and "PHASE 2: Match Analysis". The model returns a
+      single JSON document that contains both outputs. The result is faster, cheaper, and
+      more coherent, because the model sees both the raw text and the weights at the same
+      time.
+    </p>
+
+    <h2>Why a process-global config?</h2>
+    <p>
+      A class-based <code>Client(config=...)</code> style would arguably be more explicit,
+      but it penalizes the common case: a script or notebook that picks one provider and
+      uses it for everything. With a singleton, you call <code>configure()</code> at the
+      top of your file and forget about it. If you need multiple concurrent configurations,
+      the lower-level <code>calculate_match</code> and <code>json_completion</code>
+      functions both accept an explicit <code>config=</code> argument.
+    </p>
+
+    <h2>What was stripped from the original backend</h2>
+    <table>
+      <thead><tr><th>Removed</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td>LinkedIn scraping (Apify)</td><td>Proprietary, paid, and off-topic for a library.</td></tr>
+        <tr><td>Credly badge verification</td><td>Depends on an external account.</td></tr>
+        <tr><td>Geocoding (geopy / Nominatim)</td><td>Irrelevant to the core score. Added a network dependency and rate limits.</td></tr>
+        <tr><td>PostgreSQL persistence (asyncpg, sqlalchemy)</td><td>A library should not force a database on the caller. The package returns dictionaries, and callers persist as they see fit.</td></tr>
+        <tr><td>FastAPI routes and HashiCorp Vault</td><td>These belong in an <em>application</em> built on top of reveilio, not in the library itself.</td></tr>
+        <tr><td>Chat, experience, and multi-turn agents</td><td>Out of scope for v0. They may return as opt-in sub-modules.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Thread safety</h2>
+    <p>
+      <code>analyze_folder</code> uses a <code>ThreadPoolExecutor</code>. This is safe
+      because:
+    </p>
+    <ul>
+      <li>The Gemini, OpenAI, and Azure SDK clients are thread-safe.</li>
+      <li>The Ollama path creates a fresh <code>httpx.Client</code> per call.</li>
+      <li>The <code>ReveilioConfig</code> singleton is read-only after <code>configure()</code>.</li>
+      <li>Each worker receives its own <code>Resume</code> instance.
+        <code>JobDescription.parsed</code> is computed once on the main thread before the
+        pool starts, so workers only read from it.</li>
+    </ul>
+
+    <h2>Error philosophy</h2>
+    <ul>
+      <li><strong>Configuration errors raise.</strong> Missing API keys, unsupported
+        providers, and unreadable file extensions all throw loud exceptions. These are
+        programmer errors worth surfacing immediately.</li>
+      <li><strong>Per-resume LLM errors are contained.</strong> <code>calculate_match</code>
+        wraps the LLM call in a <code>try</code> / <code>except</code> and returns a safe
+        "Needs Review" result on failure. In a 500-resume batch, one bad file will not
+        kill the other 499.</li>
+      <li><strong>No silent recoveries.</strong> The fallback result is clearly marked
+        (low confidence, an explicit error string in <code>ai_summary</code>) so callers
+        can filter it out.</li>
+    </ul>
+
+    <h2>Extension points</h2>
+    <ul>
+      <li><strong>Custom weights:</strong> pass <code>weights=</code> to <code>configure()</code>.</li>
+      <li><strong>Custom prompts:</strong> override the builders in
+        <code>reveilio.scoring.prompts</code>, or pass your own structured JD dictionary to
+        <code>calculate_match</code>.</li>
+      <li><strong>Custom text extraction:</strong> <code>reveilio.parsing.text_extract</code>
+        dispatches on extension. Import <code>extract_text</code> directly to reuse it
+        from your own code.</li>
+      <li><strong>Custom report layout:</strong> copy <code>reports/pdf.py</code> as a
+        starting point. It is plain ReportLab with no hidden magic.</li>
+    </ul>
+
+    <h2>Version policy</h2>
+    <p>
+      Reveilio follows <a href="https://semver.org" target="_blank" rel="noreferrer">SemVer</a>.
+      Prior to 1.0, minor versions may break the public API when the shape of a result
+      changes. Always pin the version you test against in production. From 1.0 onwards,
+      breaking changes require a major-version bump.
+    </p>
+
+    <p>Continue to <a href="contributing.html">Contributing</a>.</p>
+    <footer>© 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

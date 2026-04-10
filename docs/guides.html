@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Guides | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 · docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="database.html">Database storage</a></li>
+        <li><a class="active" href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>Guides</h1>
+    <p class="subtitle">Common tasks, real-world patterns, copy-paste friendly.</p>
+
+    <h2>1. Managing multiple job descriptions</h2>
+    <p>A <code>JobDescription</code> is an ordinary Python object. You can keep a dictionary
+      of them, one per open role, and run any resume against any JD.</p>
+<pre><code>roles = {
+    <span class="tok-s">"senior_python"</span>: reveilio.JobDescription.from_file(<span class="tok-s">"roles/senior_python.pdf"</span>),
+    <span class="tok-s">"ml_engineer"</span>:  reveilio.JobDescription.from_file(<span class="tok-s">"roles/ml_engineer.pdf"</span>),
+    <span class="tok-s">"devrel"</span>:       reveilio.JobDescription.from_text(pasted_devrel_text),
+}
+
+<span class="tok-c"># Score Alice against every open role to find her best fit</span>
+alice = reveilio.Resume.from_file(<span class="tok-s">"resumes/alice.pdf"</span>)
+fits = {name: reveilio.analyze_resume(alice, jd) <span class="tok-k">for</span> name, jd <span class="tok-k">in</span> roles.items()}
+best = <span class="tok-f">max</span>(fits.items(), key=<span class="tok-k">lambda</span> kv: kv[<span class="tok-n">1</span>].overall_score)
+<span class="tok-f">print</span>(<span class="tok-s">"Alice best fits"</span>, best[<span class="tok-n">0</span>], <span class="tok-s">"at"</span>, best[<span class="tok-n">1</span>].overall_score)</code></pre>
+
+    <div class="tip">
+      <strong>Tip:</strong> the structured JD parse is cached on the <code>JobDescription</code>
+      instance. It is only computed on first access to <code>jd.parsed</code>. Reusing the
+      same object across many resumes means one LLM call for the JD instead of N.
+    </div>
+
+    <h2>2. Free-text JDs and resumes</h2>
+    <p>Sometimes the source of truth is not a file. It is a row in your ATS or a message in
+      Slack. Both <code>JobDescription</code> and <code>Resume</code> accept raw strings:</p>
+<pre><code>jd = reveilio.JobDescription.from_text(row[<span class="tok-s">"job_description"</span>])
+resume = reveilio.Resume.from_text(row[<span class="tok-s">"resume_text"</span>], filename=row[<span class="tok-s">"candidate_id"</span>])
+result = reveilio.analyze_resume(resume, jd)</code></pre>
+
+    <h2>3. Web upload handlers (bytes in, result out)</h2>
+    <p>When wiring reveilio into a Flask, FastAPI, or Django view, you typically receive
+      <code>bytes</code> from an uploaded file. Use <code>from_bytes</code>:</p>
+<pre><code>@app.post(<span class="tok-s">"/analyze"</span>)
+<span class="tok-k">def</span> analyze(jd_file, resume_file):
+    jd = reveilio.JobDescription.from_bytes(jd_file.read(), filename=jd_file.filename)
+    rs = reveilio.Resume.from_bytes(resume_file.read(), filename=resume_file.filename)
+    <span class="tok-k">return</span> reveilio.analyze_resume(rs, jd).model_dump()</code></pre>
+
+    <h2>4. Folder analysis: recursion, filters, and parallelism</h2>
+<pre><code>results = reveilio.analyze_folder(
+    <span class="tok-s">"./resumes"</span>,
+    jd,
+    extensions=(<span class="tok-s">".pdf"</span>, <span class="tok-s">".docx"</span>),  <span class="tok-c"># limit to just these two types</span>
+    max_workers=<span class="tok-n">8</span>,                    <span class="tok-c"># LLM calls are I/O-bound, so threads help</span>
+    recursive=<span class="tok-k">True</span>,                  <span class="tok-c"># walk into subfolders</span>
+)</code></pre>
+    <p>
+      Results are sorted by <code>overall_score</code> descending, with <code>rank</code>
+      assigned from 1 to N. Ties preserve the LLM-returned order.
+    </p>
+    <div class="warn">
+      <strong>Rate limits:</strong> hosted LLMs will return HTTP 429 if you set
+      <code>max_workers</code> too aggressively. Start with 4 and increase only if your
+      provider quota is generous.
+    </div>
+
+    <h2>5. Downloading PDF reports</h2>
+    <p>Two exporters ship with the package. Both write a file to disk and return the
+      resulting <code>pathlib.Path</code>:</p>
+<pre><code><span class="tok-c"># Per-candidate detailed report</span>
+reveilio.save_report_pdf(result, <span class="tok-s">"reports/alice.pdf"</span>)
+
+<span class="tok-c"># Batch ranking summary</span>
+reveilio.save_batch_report_pdf(results, <span class="tok-s">"reports/ranking.pdf"</span>)</code></pre>
+    <p>
+      For the raw bytes (for example, to stream a PDF in an HTTP response), bypass the
+      convenience wrapper and call the underlying builder:
+    </p>
+<pre><code><span class="tok-k">from</span> reveilio.reports.pdf <span class="tok-k">import</span> generate_candidate_report
+
+buf = generate_candidate_report(result.model_dump())
+<span class="tok-k">return</span> Response(buf.getvalue(), media_type=<span class="tok-s">"application/pdf"</span>)</code></pre>
+
+    <h2>6. Inspecting the result</h2>
+    <p>An <code>AnalysisResult</code> is a pydantic model. Every field is documented and
+      ready to use:</p>
+<pre><code>result.overall_score            <span class="tok-c"># float, 0-100</span>
+result.confidence_level         <span class="tok-c"># 'High' / 'Medium' / 'Low'</span>
+result.recommendation           <span class="tok-c"># 'Shortlist' / 'Needs Review' / 'Not Suitable'</span>
+result.detailed_scores          <span class="tok-c"># dict: dimension -&gt; {score, reasoning}</span>
+result.strengths                <span class="tok-c"># list[str]</span>
+result.weaknesses               <span class="tok-c"># list[str]</span>
+result.career_flags             <span class="tok-c"># list[str]</span>
+result.ai_summary               <span class="tok-c"># executive critique (about 120 words)</span>
+result.suggested_questions      <span class="tok-c"># populated only when recommendation == 'Shortlist'</span>
+result.candidate_data.name      <span class="tok-c"># extracted structured fields</span>
+result.candidate_data.skills
+result.candidate_data.experience   <span class="tok-c"># list[ExperienceItem]</span>
+result.rank                     <span class="tok-c"># only set by analyze_folder()</span></code></pre>
+
+    <h2>7. Filtering and ranking in pure Python</h2>
+<pre><code><span class="tok-c"># Only shortlisted candidates, sorted by experience</span>
+shortlist = [r <span class="tok-k">for</span> r <span class="tok-k">in</span> results <span class="tok-k">if</span> r.recommendation == <span class="tok-s">"Shortlist"</span>]
+shortlist.sort(key=<span class="tok-k">lambda</span> r: r.candidate_data.total_experience, reverse=<span class="tok-k">True</span>)
+
+<span class="tok-c"># Candidates with a specific skill</span>
+python_devs = [r <span class="tok-k">for</span> r <span class="tok-k">in</span> results
+               <span class="tok-k">if</span> <span class="tok-s">"Python"</span> <span class="tok-k">in</span> (r.candidate_data.skills <span class="tok-k">or</span> [])]</code></pre>
+
+    <h2>8. Handling provider errors</h2>
+    <p>The scorer wraps its LLM call in a <code>try</code> / <code>except</code> and returns
+      a safe fallback result rather than raising, so a single bad resume will not crash a
+      500-resume batch. You can detect the error case by checking the summary:</p>
+<pre><code><span class="tok-k">if</span> <span class="tok-s">"Error"</span> <span class="tok-k">in</span> (result.ai_summary <span class="tok-k">or</span> <span class="tok-s">""</span>):
+    <span class="tok-f">print</span>(<span class="tok-s">"LLM call failed for"</span>, result.candidate_data.filename)</code></pre>
+    <p>For the parsing and configuration layers (missing API key, unsupported file
+      extension), reveilio <em>does</em> raise. Those are programmer errors worth stopping
+      for.</p>
+
+    <p>Continue to the <a href="api-reference.html">API reference</a>.</p>
+    <footer>© 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

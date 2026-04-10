@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reveilio: LLM-powered resume scoring</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="logo" src="assets/logo.png" alt="Reveilio logo" />
+      <div>
+        <h1>reveilio</h1>
+        <small>v0.1.0 · docs</small>
+      </div>
+    </div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a class="active" href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="job-descriptions.html">Job descriptions</a></li>
+        <li><a href="resume-parsing.html">Resume parsing</a></li>
+        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a href="reports.html">PDF reports</a></li>
+        <li><a href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main>
+    <section class="hero">
+      <div class="badges">
+        <span class="badge">Python 3.9+</span>
+        <span class="badge">MIT licensed</span>
+        <span class="badge">Gemini &middot; OpenAI &middot; Azure &middot; Ollama</span>
+        <span class="badge">No database. No web server. Just a library.</span>
+      </div>
+      <h1>Turn a folder of resumes into a ranked shortlist.</h1>
+      <p class="subtitle">
+        Reveilio is a Python library that reads a job description and a set of resumes,
+        calls the LLM of your choice, and returns structured, weighted, explainable
+        match scores along with downloadable PDF reports.
+      </p>
+
+<pre><code><span class="tok-k">import</span> reveilio
+
+reveilio.configure(provider=<span class="tok-s">"openai"</span>, api_key=<span class="tok-s">"sk-..."</span>)
+
+jd      = reveilio.JobDescription.from_file(<span class="tok-s">"jd.pdf"</span>)
+results = reveilio.analyze_folder(<span class="tok-s">"./resumes"</span>, jd)
+
+<span class="tok-k">for</span> r <span class="tok-k">in</span> results:
+    <span class="tok-f">print</span>(r.rank, r.candidate_data.name, r.overall_score, r.recommendation)
+
+reveilio.save_batch_report_pdf(results, <span class="tok-s">"ranking.pdf"</span>)</code></pre>
+    </section>
+
+    <h2>Why reveilio exists</h2>
+    <p>
+      Most recruitment tools sit behind a SaaS login, lock your data in a database you
+      do not own, and return a score with no way to see <em>why</em>. Reveilio takes
+      the opposite approach. It is a plain Python package that runs on your own machine,
+      with your own LLM credentials, against your own resumes. There is no server, no
+      database, and no dashboard. It is a function that returns a structured result.
+    </p>
+
+    <h2>Core features at a glance</h2>
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#ig1)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="ig1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+        <h3>Multi-format parsing</h3>
+        <p>Reads PDF, DOCX, DOC, TXT files and free text for both job descriptions and resumes. Supports legacy binary Word files via antiword fallback.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#ig2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="ig2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+        <h3>Structured extraction</h3>
+        <p>Name, email, phone, skills, experience timeline with titles and companies, education, certifications, career gaps, and keywords are all extracted automatically.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#ig3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="ig3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <h3>Seven-dimension scoring</h3>
+        <p>Skills, semantic skills, experience, education, certifications, soft skills, and domain relevance. Each with an individual score (0 to 100) and written reasoning.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#ig4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="ig4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+        <h3>Explainable results</h3>
+        <p>Strengths, weaknesses, career flags, KPIs, relevancy metrics, suggested alternative roles, and a 120-word executive summary per candidate.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#ig5)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="ig5" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <h3>Interview questions</h3>
+        <p>For every candidate marked <em>Shortlist</em>, reveilio generates 3 to 5 role-aligned live interview questions drawn from the JD and resume.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#ig6)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="ig6" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+        <h3>PDF report export</h3>
+        <p>Export detailed per-candidate reports or a batch ranking summary as professional PDF files with a single function call.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#ig7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="ig7" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg></div>
+        <h3>Bring your own LLM</h3>
+        <p>Gemini, OpenAI, Azure OpenAI, or a self-hosted Ollama model. Configure once with <code>reveilio.configure()</code> and switch providers anytime.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#ig8)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="ig8" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+        <h3>Customizable weights</h3>
+        <p>Adjust the scoring rubric to match your hiring priorities. Emphasize skills for engineering roles, education for research roles, or certifications for compliance roles.</p>
+      </div>
+    </div>
+
+    <h2>The pipeline, visualized</h2>
+    <div class="flow">
+      <div class="step">JD file / text</div>
+      <div class="arrow">&#8594;</div>
+      <div class="step">JobDescription<br/><small>(parsing)</small></div>
+      <div class="arrow">&#8594;</div>
+      <div class="step">Resume(s)<br/><small>(parsing)</small></div>
+      <div class="arrow">&#8594;</div>
+      <div class="step">Scorer<br/><small>(AI Analysis)</small></div>
+      <div class="arrow">&#8594;</div>
+      <div class="step">AnalysisResult</div>
+      <div class="arrow">&#8594;</div>
+      <div class="step">PDF report</div>
+    </div>
+
+    <h2>Who this is for</h2>
+    <ul>
+      <li><strong>Recruiters who script.</strong> Rank 200 resumes in 10 lines of Python from a Jupyter notebook.</li>
+      <li><strong>HR tech builders.</strong> Use reveilio as the scoring engine behind your own application, CLI, or chat bot with no framework lock-in.</li>
+      <li><strong>Researchers.</strong> Compare prompts, tune weights, swap models, and measure inter-model agreement.</li>
+    </ul>
+
+    <h2>Ready?</h2>
+    <p>Continue to <a href="installation.html">Installation</a>, then the <a href="quickstart.html">Quickstart</a>.</p>
+
+    <footer>&copy; 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

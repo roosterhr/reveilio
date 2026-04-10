@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Job descriptions | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 &middot; docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a class="active" href="job-descriptions.html">Job descriptions</a></li>
+        <li><a href="resume-parsing.html">Resume parsing</a></li>
+        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a href="reports.html">PDF reports</a></li>
+        <li><a href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>Job descriptions</h1>
+    <p class="subtitle">How reveilio loads, parses, and structures a job description.</p>
+
+    <h2>The JobDescription class</h2>
+    <p>A <code>JobDescription</code> holds the raw text of a JD and a lazily-computed
+      structured parse. The LLM is only called the first time you access
+      <code>.parsed</code>. After that, the result is cached on the object.</p>
+    <p>Each instance is fully independent. You can create multiple
+      <code>JobDescription</code> objects for different open roles and reuse them
+      across any number of resumes.</p>
+
+    <h2>Three ways to create one</h2>
+
+    <h3>1. From a file on disk</h3>
+    <p>Supports <code>.pdf</code>, <code>.docx</code>, <code>.doc</code>, and <code>.txt</code> files.</p>
+<pre><code>jd = reveilio.JobDescription.from_file(<span class="tok-s">"roles/senior_python.pdf"</span>)</code></pre>
+    <p>Reveilio extracts the plain text from the file, stores it in <code>jd.text</code>,
+      and sets <code>jd.source</code> to the file path.</p>
+
+    <h3>2. From free text</h3>
+    <p>Paste a JD directly from an email, database row, or API response.</p>
+<pre><code>jd = reveilio.JobDescription.from_text(<span class="tok-s">"""
+Senior Python Engineer, 5+ years experience.
+Must know FastAPI, PostgreSQL, and AWS.
+Experience with CI/CD pipelines required.
+"""</span>)</code></pre>
+
+    <h3>3. From in-memory bytes</h3>
+    <p>Useful when integrating with web frameworks where uploaded files arrive as bytes.</p>
+<pre><code>jd = reveilio.JobDescription.from_bytes(
+    uploaded_file.read(),
+    filename=<span class="tok-s">"senior_python.pdf"</span>,  <span class="tok-c"># extension determines the parser</span>
+)</code></pre>
+
+    <h2>What gets extracted</h2>
+    <p>When you access <code>jd.parsed</code>, the LLM extracts a structured dictionary
+      containing:</p>
+    <table>
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>position_title</code></td><td>The role title (e.g. "Senior Full Stack Developer").</td></tr>
+        <tr><td><code>company</code></td><td>The hiring company name.</td></tr>
+        <tr><td><code>location</code></td><td>Work location.</td></tr>
+        <tr><td><code>work_mode</code></td><td>Remote, hybrid, or on-site.</td></tr>
+        <tr><td><code>required_skills</code></td><td>List of must-have technical skills.</td></tr>
+        <tr><td><code>preferred_skills</code></td><td>List of nice-to-have skills.</td></tr>
+        <tr><td><code>soft_skills</code></td><td>Communication, leadership, etc.</td></tr>
+        <tr><td><code>required_experience</code></td><td>Minimum years of experience.</td></tr>
+        <tr><td><code>preferred_experience</code></td><td>Preferred years of experience.</td></tr>
+        <tr><td><code>education_requirements</code></td><td>List of required degrees.</td></tr>
+        <tr><td><code>certifications</code></td><td>Required or preferred certifications.</td></tr>
+        <tr><td><code>tools_and_technologies</code></td><td>Specific tools mentioned.</td></tr>
+        <tr><td><code>programming_languages</code></td><td>Languages required.</td></tr>
+        <tr><td><code>frameworks</code></td><td>Frameworks required (React, Django, etc.).</td></tr>
+        <tr><td><code>databases</code></td><td>Database systems mentioned.</td></tr>
+        <tr><td><code>cloud_platforms</code></td><td>AWS, Azure, GCP, etc.</td></tr>
+        <tr><td><code>methodologies</code></td><td>Agile, Scrum, etc.</td></tr>
+        <tr><td><code>responsibilities</code></td><td>List of job responsibilities.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Lazy parsing and caching</h2>
+    <p>The structured parse is computed <strong>only on first access</strong> to
+      <code>jd.parsed</code>. This means creating a <code>JobDescription</code> object
+      is instant. The LLM call only happens when you actually need the parsed data,
+      which is typically when you call <code>analyze_resume()</code>.</p>
+    <p>Once computed, the result is cached. If you score 500 resumes against the same JD,
+      the JD parsing LLM call happens exactly once.</p>
+<pre><code>jd = reveilio.JobDescription.from_file(<span class="tok-s">"jd.pdf"</span>)  <span class="tok-c"># no LLM call yet</span>
+<span class="tok-f">print</span>(jd.parsed[<span class="tok-s">"position_title"</span>])               <span class="tok-c"># LLM call happens here</span>
+<span class="tok-f">print</span>(jd.parsed[<span class="tok-s">"required_skills"</span>])              <span class="tok-c"># cached, no second call</span></code></pre>
+
+    <h2>Managing multiple JDs</h2>
+    <p>Each <code>JobDescription</code> is an independent object with its own cache.
+      Keep a dictionary of them for multi-role screening:</p>
+<pre><code>roles = {
+    <span class="tok-s">"backend"</span>: reveilio.JobDescription.from_file(<span class="tok-s">"roles/backend.pdf"</span>),
+    <span class="tok-s">"frontend"</span>: reveilio.JobDescription.from_file(<span class="tok-s">"roles/frontend.txt"</span>),
+    <span class="tok-s">"devops"</span>: reveilio.JobDescription.from_text(devops_jd_text),
+}
+
+<span class="tok-c"># Score one candidate against all open roles</span>
+<span class="tok-k">for</span> role_name, jd <span class="tok-k">in</span> roles.items():
+    result = reveilio.analyze_resume(<span class="tok-s">"resumes/alice.pdf"</span>, jd)
+    <span class="tok-f">print</span>(<span class="tok-s">f"{role_name}: {result.overall_score}%"</span>)</code></pre>
+
+    <h2>Inspecting the raw text</h2>
+    <p>The extracted text is always available via <code>jd.text</code>. This is useful for
+      debugging or for feeding into your own processing pipeline.</p>
+<pre><code><span class="tok-f">print</span>(jd.text[:500])     <span class="tok-c"># first 500 chars of extracted text</span>
+<span class="tok-f">print</span>(jd.source)         <span class="tok-c"># file path or "text"</span></code></pre>
+
+    <div class="note">
+      <strong>Note:</strong> if the LLM cannot parse the JD (e.g. the text is too garbled),
+      <code>jd.parsed</code> returns a safe fallback dictionary with
+      <code>"position_title": "N/A"</code> and empty lists for skills and requirements.
+    </div>
+
+    <p>Continue to <a href="resume-parsing.html">Resume parsing</a>.</p>
+    <footer>&copy; 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

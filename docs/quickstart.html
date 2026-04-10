@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quickstart | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 · docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a class="active" href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="job-descriptions.html">Job descriptions</a></li>
+        <li><a href="resume-parsing.html">Resume parsing</a></li>
+        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a href="reports.html">PDF reports</a></li>
+        <li><a href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>Quickstart</h1>
+    <p class="subtitle">From installation to a ranked shortlist in a few minutes.</p>
+
+    <h2>Step 1. Configure once</h2>
+    <p>Choose a provider and set an API key. <code>configure()</code> stores a process-global
+      configuration that every other reveilio call reads from. It only needs to be called once.</p>
+<pre><code><span class="tok-k">import</span> reveilio
+
+reveilio.configure(
+    provider=<span class="tok-s">"gemini"</span>,
+    api_key=<span class="tok-s">"AIza..."</span>,
+)</code></pre>
+    <p>If you prefer environment variables, set <code>GEMINI_API_KEY</code>,
+      <code>OPENAI_API_KEY</code>, or the equivalent for your provider. Reveilio will pick
+      them up automatically.</p>
+
+    <h2>Step 2. Build a JobDescription</h2>
+    <p>A <code>JobDescription</code> is a lightweight wrapper around the raw JD text plus a
+      lazily-computed structured parse. You can create one from a file, from free text, or
+      from in-memory bytes.</p>
+<pre><code><span class="tok-c"># From a file (.pdf, .docx, .doc, or .txt)</span>
+jd = reveilio.JobDescription.from_file(<span class="tok-s">"jd.pdf"</span>)
+
+<span class="tok-c"># From free text, for pasted JDs or database rows</span>
+jd = reveilio.JobDescription.from_text(<span class="tok-s">"""
+Senior Python Engineer, 5+ years, FastAPI, AWS, Postgres.
+Must be comfortable with async code and production on-call.
+"""</span>)
+
+<span class="tok-c"># From in-memory bytes, e.g. an uploaded file in a web handler</span>
+jd = reveilio.JobDescription.from_bytes(uploaded.read(), filename=uploaded.name)</code></pre>
+    <div class="tip"><strong>Tip:</strong> <code>JobDescription</code> instances are independent and reusable. Keep one per open role.</div>
+
+    <h2>Step 3a. Analyze a single resume</h2>
+<pre><code>result = reveilio.analyze_resume(<span class="tok-s">"resumes/alice.pdf"</span>, jd)
+
+<span class="tok-f">print</span>(result.overall_score)        <span class="tok-c"># 82.0</span>
+<span class="tok-f">print</span>(result.recommendation)       <span class="tok-c"># 'Shortlist'</span>
+<span class="tok-f">print</span>(result.candidate_data.name) <span class="tok-c"># 'Alice Example'</span>
+<span class="tok-f">print</span>(result.detailed_scores[<span class="tok-s">"skills"</span>])
+<span class="tok-c"># {'score': 90, 'reasoning': 'strong match on Python, FastAPI...'}</span></code></pre>
+
+    <p>You can pass a <code>Resume</code> object, a path, or free text:</p>
+<pre><code>reveilio.analyze_resume(reveilio.Resume.from_text(text), jd)
+reveilio.analyze_resume(<span class="tok-s">"resumes/bob.docx"</span>, jd)
+reveilio.analyze_resume(<span class="tok-s">"Bob, 8 years Java"</span>, jd)  <span class="tok-c"># treated as free text</span></code></pre>
+
+    <h2>Step 3b. Analyze a folder</h2>
+    <p>Point reveilio at a folder. It will pick up every supported resume, score them in
+      parallel, sort by <code>overall_score</code>, and assign a 1-based <code>rank</code>.</p>
+<pre><code>results = reveilio.analyze_folder(<span class="tok-s">"./resumes"</span>, jd, max_workers=<span class="tok-n">4</span>)
+
+<span class="tok-k">for</span> r <span class="tok-k">in</span> results[:<span class="tok-n">5</span>]:
+    <span class="tok-f">print</span>(<span class="tok-s">f"#{r.rank} {r.candidate_data.name:&lt;25} {r.overall_score:>5.1f}  {r.recommendation}"</span>)</code></pre>
+    <p>To include subfolders, pass <code>recursive=True</code>.</p>
+
+    <h2>Step 4. Export a PDF report</h2>
+    <p>The same PDF exporter used in the original HR application ships with the package.
+      Two formats are available:</p>
+<pre><code><span class="tok-c"># A detailed report for a single candidate</span>
+reveilio.save_report_pdf(result, <span class="tok-s">"reports/alice.pdf"</span>)
+
+<span class="tok-c"># A ranking summary table for an entire batch</span>
+reveilio.save_batch_report_pdf(results, <span class="tok-s">"reports/ranking.pdf"</span>)</code></pre>
+
+    <h2>Putting it all together</h2>
+<pre><code><span class="tok-k">import</span> reveilio
+
+reveilio.configure(provider=<span class="tok-s">"openai"</span>, api_key=<span class="tok-s">"sk-..."</span>, model=<span class="tok-s">"gpt-4o-mini"</span>)
+
+jd = reveilio.JobDescription.from_file(<span class="tok-s">"roles/senior_python.pdf"</span>)
+results = reveilio.analyze_folder(<span class="tok-s">"applicants/2026-Q2/"</span>, jd)
+
+shortlist = [r <span class="tok-k">for</span> r <span class="tok-k">in</span> results <span class="tok-k">if</span> r.recommendation == <span class="tok-s">"Shortlist"</span>]
+<span class="tok-f">print</span>(<span class="tok-s">f"{len(shortlist)} of {len(results)} candidates made the shortlist"</span>)
+
+reveilio.save_batch_report_pdf(results, <span class="tok-s">"reports/senior_python_ranking.pdf"</span>)
+<span class="tok-k">for</span> r <span class="tok-k">in</span> shortlist:
+    reveilio.save_report_pdf(r, <span class="tok-s">f"reports/{r.candidate_data.name}.pdf"</span>)</code></pre>
+
+    <p>Continue to <a href="configuration.html">Configuration &amp; providers</a>.</p>
+    <footer>© 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

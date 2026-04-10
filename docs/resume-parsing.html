@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Resume parsing | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 &middot; docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="job-descriptions.html">Job descriptions</a></li>
+        <li><a class="active" href="resume-parsing.html">Resume parsing</a></li>
+        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a href="reports.html">PDF reports</a></li>
+        <li><a href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>Resume parsing</h1>
+    <p class="subtitle">How reveilio extracts text from resumes and what formats are supported.</p>
+
+    <h2>Supported file formats</h2>
+    <table>
+      <thead><tr><th>Extension</th><th>Method</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>.pdf</code></td><td>PyPDF2</td><td>Works with text-based PDFs. Scanned/image PDFs require OCR (not built in).</td></tr>
+        <tr><td><code>.docx</code></td><td>python-docx</td><td>Full support for modern Word files (Office 2007+).</td></tr>
+        <tr><td><code>.doc</code></td><td>antiword / heuristic</td><td>Legacy Word binary format. Best results with <code>antiword</code> installed. Falls back to UTF-16LE extraction and printable ASCII runs.</td></tr>
+        <tr><td><code>.txt</code></td><td>UTF-8 decode</td><td>Plain text with graceful handling of encoding errors.</td></tr>
+        <tr><td>Free text</td><td>Direct string</td><td>Pass text directly without any file. Useful for database rows or API responses.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>The Resume class</h2>
+    <p>A <code>Resume</code> is a lightweight wrapper that holds the extracted plain text
+      and a filename. Unlike <code>JobDescription</code>, the <code>Resume</code> class
+      does not call the LLM on its own. Structured extraction happens inside
+      <code>analyze_resume()</code> as part of a single combined LLM call.</p>
+
+    <h3>From a file</h3>
+<pre><code>resume = reveilio.Resume.from_file(<span class="tok-s">"resumes/alice.pdf"</span>)
+<span class="tok-f">print</span>(resume.filename)  <span class="tok-c"># "alice.pdf"</span>
+<span class="tok-f">print</span>(resume.text[:200]) <span class="tok-c"># extracted plain text</span></code></pre>
+
+    <h3>From free text</h3>
+<pre><code>resume = reveilio.Resume.from_text(
+    <span class="tok-s">"Alice Example, Senior Python Engineer, 6 years experience..."</span>,
+    filename=<span class="tok-s">"alice.txt"</span>,  <span class="tok-c"># optional, used in output reports</span>
+)</code></pre>
+
+    <h3>From bytes</h3>
+<pre><code>resume = reveilio.Resume.from_bytes(
+    uploaded_file.read(),
+    filename=<span class="tok-s">"alice.pdf"</span>,  <span class="tok-c"># extension determines the parser</span>
+)</code></pre>
+
+    <h2>What gets extracted during analysis</h2>
+    <p>When you call <code>reveilio.analyze_resume(resume, jd)</code>, the scorer
+      extracts the following structured data from the resume in a single LLM call:</p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>name</code></td><td>string</td><td>Candidate full name.</td></tr>
+        <tr><td><code>email</code></td><td>string</td><td>Email address.</td></tr>
+        <tr><td><code>phone</code></td><td>string</td><td>Phone number.</td></tr>
+        <tr><td><code>linkedin</code></td><td>string</td><td>LinkedIn profile URL if present on the resume.</td></tr>
+        <tr><td><code>skills</code></td><td>list</td><td>All technical and non-technical skills found.</td></tr>
+        <tr><td><code>experience</code></td><td>list</td><td>Each position with title, company, duration, description, and location.</td></tr>
+        <tr><td><code>education</code></td><td>list</td><td>Each degree with institution, year, and location.</td></tr>
+        <tr><td><code>certifications</code></td><td>list</td><td>Professional certifications.</td></tr>
+        <tr><td><code>total_experience</code></td><td>float</td><td>Calculated total years of experience.</td></tr>
+        <tr><td><code>top_keywords</code></td><td>list</td><td>Most relevant keywords from the resume.</td></tr>
+        <tr><td><code>career_gaps</code></td><td>list</td><td>Detected gaps in employment history.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Handling .doc files (legacy Word binary)</h2>
+    <p>The <code>.doc</code> format is a legacy binary format from Word 97-2003. Reveilio
+      handles it using a multi-step fallback strategy:</p>
+    <ol>
+      <li><strong>RTF detection:</strong> some tools save RTF files with a <code>.doc</code>
+        extension. These are detected by checking for the <code>{\rtf</code> header and
+        parsed as RTF.</li>
+      <li><strong>OOXML detection:</strong> some tools save DOCX (ZIP-based) files with a
+        <code>.doc</code> extension. These are detected by the <code>PK</code> header and
+        parsed as DOCX.</li>
+      <li><strong>Antiword:</strong> if the file is truly binary Word, reveilio tries the
+        <code>antiword</code> command-line tool. Install it with
+        <code>sudo apt-get install antiword</code> on Linux.</li>
+      <li><strong>UTF-16LE extraction:</strong> Word binary files store body text as
+        UTF-16LE runs. Reveilio extracts these directly.</li>
+      <li><strong>Printable ASCII runs:</strong> as a last resort, reveilio scans for
+        sequences of printable ASCII characters in the raw binary.</li>
+    </ol>
+
+    <h2>Using the text extractor directly</h2>
+    <p>The text extraction logic is available as a standalone utility:</p>
+<pre><code><span class="tok-k">from</span> reveilio.parsing.text_extract <span class="tok-k">import</span> extract_text
+
+text = extract_text(<span class="tok-s">"document.pdf"</span>)       <span class="tok-c"># from file path</span>
+text = extract_text(raw_bytes, filename=<span class="tok-s">"doc.docx"</span>)  <span class="tok-c"># from bytes</span></code></pre>
+
+    <h2>Convenience: skip the Resume class</h2>
+    <p>You do not have to create a <code>Resume</code> object manually.
+      <code>analyze_resume()</code> accepts file paths and free text directly:</p>
+<pre><code><span class="tok-c"># All three are equivalent</span>
+reveilio.analyze_resume(<span class="tok-s">"resumes/alice.pdf"</span>, jd)
+reveilio.analyze_resume(reveilio.Resume.from_file(<span class="tok-s">"resumes/alice.pdf"</span>), jd)
+
+<span class="tok-c"># Free text works too</span>
+reveilio.analyze_resume(<span class="tok-s">"Alice, 6 years Python, FastAPI, AWS"</span>, jd)</code></pre>
+
+    <p>Continue to <a href="scoring.html">Scoring &amp; analysis</a>.</p>
+    <footer>&copy; 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

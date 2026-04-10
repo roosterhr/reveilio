@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scoring &amp; analysis | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 &middot; docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="job-descriptions.html">Job descriptions</a></li>
+        <li><a href="resume-parsing.html">Resume parsing</a></li>
+        <li><a class="active" href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a href="reports.html">PDF reports</a></li>
+        <li><a href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>Scoring &amp; analysis</h1>
+    <p class="subtitle">How reveilio scores resumes against job descriptions and what the result contains.</p>
+
+    <h2>How scoring works</h2>
+    <p>Reveilio performs resume extraction and scoring in a <strong>single LLM call</strong>.
+      The prompt instructs the model to:</p>
+    <ol>
+      <li><strong>Phase 1: Extract</strong> structured data from the resume (name, skills, experience, education, certifications, career gaps).</li>
+      <li><strong>Phase 2: Score</strong> the candidate against the JD using weighted criteria.</li>
+    </ol>
+    <p>The model returns a single JSON document with both the extracted data and the
+      analysis. This is faster and cheaper than making two separate calls, and produces
+      more coherent results because the model reasons about the raw text and the scoring
+      criteria simultaneously.</p>
+
+    <h2>The seven scoring dimensions</h2>
+    <p>Each dimension receives a score from 0 to 100, plus a written reasoning explaining
+      the score. The weights are configurable via <code>configure(weights=...)</code>.</p>
+    <table>
+      <thead><tr><th>Dimension</th><th>Default weight</th><th>What it measures</th></tr></thead>
+      <tbody>
+        <tr><td><strong>skills</strong></td><td>20%</td><td>Direct keyword match between JD required skills and resume skills.</td></tr>
+        <tr><td><strong>semantic_skills</strong></td><td>20%</td><td>Conceptual overlap. A candidate who knows Flask may score well for a Django role because the underlying concepts are similar.</td></tr>
+        <tr><td><strong>experience</strong></td><td>25%</td><td>Years of relevant experience, role progression, seniority alignment.</td></tr>
+        <tr><td><strong>education</strong></td><td>15%</td><td>Degree relevance, institution prestige, academic achievements.</td></tr>
+        <tr><td><strong>certifications</strong></td><td>10%</td><td>Professional certifications that match JD requirements.</td></tr>
+        <tr><td><strong>soft_skills</strong></td><td>5%</td><td>Communication, leadership, teamwork, and other interpersonal skills.</td></tr>
+        <tr><td><strong>domain_relevance</strong></td><td>5%</td><td>Industry-specific experience. A fintech role benefits from finance experience.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>The AnalysisResult object</h2>
+    <p>Every call to <code>analyze_resume()</code> or <code>score()</code> returns an
+      <code>AnalysisResult</code> with these fields:</p>
+
+    <h3>Core scores</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>overall_score</code></td><td>float</td><td>0 to 100 weighted composite score.</td></tr>
+        <tr><td><code>confidence_level</code></td><td>string</td><td>"High", "Medium", or "Low". Reflects how confident the model is in its assessment.</td></tr>
+        <tr><td><code>recommendation</code></td><td>string</td><td>"Shortlist", "Needs Review", or "Not Suitable".</td></tr>
+        <tr><td><code>detailed_scores</code></td><td>dict</td><td>Per-dimension breakdown. Each key maps to <code>{"score": 85, "reasoning": "..."}</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Qualitative analysis</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>ai_summary</code></td><td>string</td><td>A concise executive critique, approximately 120 words. Written as an objective assessment.</td></tr>
+        <tr><td><code>strengths</code></td><td>list</td><td>What the candidate does well relative to the JD. Concrete and specific.</td></tr>
+        <tr><td><code>weaknesses</code></td><td>list</td><td>Gaps between the candidate and the JD requirements.</td></tr>
+        <tr><td><code>career_flags</code></td><td>list</td><td>Potential concerns such as frequent job changes, unexplained gaps, or misaligned career trajectory.</td></tr>
+        <tr><td><code>reasoning</code></td><td>list</td><td>Step-by-step logic behind the overall score.</td></tr>
+        <tr><td><code>experience_analysis</code></td><td>list</td><td>Deep dive into how the candidate's work history aligns with the role.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Advanced metrics</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>kpis</code></td><td>list</td><td>Key performance indicators derived from the resume (e.g. "Led a team of 12", "Reduced latency by 40%").</td></tr>
+        <tr><td><code>relevancy_metrics</code></td><td>list</td><td>Metrics such as "Average Tenure per Company", with value, relevancy level (high/medium/low), reasoning, and criteria definitions.</td></tr>
+        <tr><td><code>suggested_roles</code></td><td>list</td><td>Alternative roles the candidate might be a better fit for, each with a match score.</td></tr>
+        <tr><td><code>suggested_questions</code></td><td>list</td><td>3 to 5 role-aligned interview questions. <strong>Only populated when recommendation is "Shortlist".</strong> Empty for "Needs Review" and "Not Suitable".</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Extracted candidate data</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>candidate_data.name</code></td><td>Candidate full name.</td></tr>
+        <tr><td><code>candidate_data.email</code></td><td>Email address.</td></tr>
+        <tr><td><code>candidate_data.skills</code></td><td>List of extracted skills.</td></tr>
+        <tr><td><code>candidate_data.experience</code></td><td>List of positions with title, company, duration, description, location.</td></tr>
+        <tr><td><code>candidate_data.education</code></td><td>List of degrees with institution, year, location.</td></tr>
+        <tr><td><code>candidate_data.total_experience</code></td><td>Calculated total years of experience.</td></tr>
+        <tr><td><code>candidate_data.career_gaps</code></td><td>Detected employment gaps.</td></tr>
+        <tr><td><code>candidate_data.filename</code></td><td>Name of the source file.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Single resume analysis</h2>
+<pre><code>result = reveilio.analyze_resume(<span class="tok-s">"resumes/alice.pdf"</span>, jd)
+
+<span class="tok-f">print</span>(result.overall_score)                           <span class="tok-c"># 82.0</span>
+<span class="tok-f">print</span>(result.recommendation)                          <span class="tok-c"># "Shortlist"</span>
+<span class="tok-f">print</span>(result.detailed_scores[<span class="tok-s">"skills"</span>][<span class="tok-s">"score"</span>])      <span class="tok-c"># 90</span>
+<span class="tok-f">print</span>(result.detailed_scores[<span class="tok-s">"skills"</span>][<span class="tok-s">"reasoning"</span>])  <span class="tok-c"># "Strong match..."</span>
+<span class="tok-f">print</span>(result.ai_summary)                              <span class="tok-c"># 120-word critique</span>
+<span class="tok-f">print</span>(result.suggested_questions)                      <span class="tok-c"># interview Qs</span></code></pre>
+
+    <h2>Batch folder analysis</h2>
+    <p><code>analyze_folder()</code> processes every supported file in a directory,
+      scores them in parallel using threads, sorts results by <code>overall_score</code>
+      descending, and assigns a 1-based <code>rank</code>.</p>
+<pre><code>results = reveilio.analyze_folder(
+    <span class="tok-s">"./applicants"</span>,
+    jd,
+    extensions=(<span class="tok-s">".pdf"</span>, <span class="tok-s">".docx"</span>),  <span class="tok-c"># optional filter</span>
+    max_workers=<span class="tok-n">4</span>,                    <span class="tok-c"># parallel LLM calls</span>
+    recursive=<span class="tok-k">True</span>,                  <span class="tok-c"># include subfolders</span>
+)
+
+<span class="tok-k">for</span> r <span class="tok-k">in</span> results:
+    <span class="tok-f">print</span>(<span class="tok-s">f"#{r.rank} {r.candidate_data.name} {r.overall_score}%"</span>)</code></pre>
+
+    <h2>Error handling</h2>
+    <p>If the LLM call fails for a specific resume (network error, malformed response, etc.),
+      the scorer catches the exception and returns a safe fallback result with:</p>
+    <ul>
+      <li><code>overall_score = 0</code></li>
+      <li><code>confidence_level = "Low"</code></li>
+      <li><code>recommendation = "Needs Review"</code></li>
+      <li>The error message in <code>ai_summary</code></li>
+    </ul>
+    <p>This means a single bad resume in a 500-resume batch will not crash the entire run.
+      You can detect error results by checking the summary:</p>
+<pre><code>errors = [r <span class="tok-k">for</span> r <span class="tok-k">in</span> results <span class="tok-k">if</span> <span class="tok-s">"Error"</span> <span class="tok-k">in</span> (r.ai_summary <span class="tok-k">or</span> <span class="tok-s">""</span>)]
+<span class="tok-f">print</span>(<span class="tok-s">f"{len(errors)} resume(s) failed analysis"</span>)</code></pre>
+
+    <h2>Customizing weights</h2>
+    <p>Pass a custom weights dictionary to <code>configure()</code> to change what the
+      scorer optimizes for. The weights are embedded directly into the LLM prompt.</p>
+<pre><code>reveilio.configure(
+    provider=<span class="tok-s">"openai"</span>,
+    api_key=<span class="tok-s">"sk-..."</span>,
+    weights={
+        <span class="tok-s">"skills"</span>: <span class="tok-n">0.35</span>,            <span class="tok-c"># heavy emphasis on skills</span>
+        <span class="tok-s">"semantic_skills"</span>: <span class="tok-n">0.15</span>,
+        <span class="tok-s">"experience"</span>: <span class="tok-n">0.25</span>,
+        <span class="tok-s">"education"</span>: <span class="tok-n">0.05</span>,          <span class="tok-c"># de-emphasize education</span>
+        <span class="tok-s">"certifications"</span>: <span class="tok-n">0.10</span>,
+        <span class="tok-s">"soft_skills"</span>: <span class="tok-n">0.05</span>,
+        <span class="tok-s">"domain_relevance"</span>: <span class="tok-n">0.05</span>,
+    },
+)</code></pre>
+
+    <p>Continue to <a href="reports.html">PDF reports</a>.</p>
+    <footer>&copy; 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>
