@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Installation | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 · docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a class="active" href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="job-descriptions.html">Job descriptions</a></li>
+        <li><a href="resume-parsing.html">Resume parsing</a></li>
+        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a href="reports.html">PDF reports</a></li>
+        <li><a href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>Installation</h1>
+    <p class="subtitle">Reveilio is a plain Python package. No system services or containers are required.</p>
+
+    <h2>Requirements</h2>
+    <ul>
+      <li><strong>Python 3.9 or later</strong> (tested on 3.9 through 3.12).</li>
+      <li>An API key for one of the supported providers: Gemini, OpenAI, or Azure OpenAI. Alternatively, a running Ollama instance for local inference.</li>
+      <li>On Linux, for reliable legacy <code>.doc</code> (binary Word) support, install <code>antiword</code>:
+        <pre><code>sudo apt-get install antiword</code></pre>
+        Without it, reveilio falls back to a binary-safe text heuristic that is usable but less clean.</li>
+    </ul>
+
+    <h2>Install from PyPI</h2>
+<pre><code>pip install reveilio</code></pre>
+
+    <h2>Install from source (for development)</h2>
+<pre><code>git clone https://github.com/roosterhr/reveilio.git
+cd reveilio
+pip install -e ".[dev]"
+pytest</code></pre>
+
+    <div class="tip">
+      <strong>Tip:</strong> reveilio uses the <code>src/reveilio</code> layout, so an editable
+      install exposes the package without any <code>PYTHONPATH</code> changes.
+    </div>
+
+    <h2>What gets installed</h2>
+    <table>
+      <thead><tr><th>Dependency</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>pydantic</code></td><td>Typed result models such as <code>AnalysisResult</code> and <code>ResumeData</code>.</td></tr>
+        <tr><td><code>PyPDF2</code></td><td>PDF text extraction.</td></tr>
+        <tr><td><code>python-docx</code></td><td>DOCX text extraction.</td></tr>
+        <tr><td><code>httpx</code></td><td>HTTP client used for Ollama calls.</td></tr>
+        <tr><td><code>openai</code></td><td>OpenAI and Azure OpenAI client.</td></tr>
+        <tr><td><code>google-genai</code></td><td>Gemini client.</td></tr>
+        <tr><td><code>reportlab</code></td><td>PDF report generation.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <strong>Note:</strong> reveilio deliberately does <em>not</em> pull in <code>fastapi</code>,
+      <code>sqlalchemy</code>, <code>asyncpg</code>, <code>geopy</code>, or <code>apify-client</code>.
+      These dependencies belonged to the original application and are not required for the
+      scoring core.
+    </div>
+
+    <h2>Verifying the install</h2>
+<pre><code>python -c "import reveilio; print(reveilio.__version__)"
+# 0.1.0</code></pre>
+
+    <p>Continue to the <a href="quickstart.html">Quickstart</a>.</p>
+    <footer>© 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

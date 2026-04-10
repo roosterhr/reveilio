@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Database storage | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 &middot; docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="job-descriptions.html">Job descriptions</a></li>
+        <li><a href="resume-parsing.html">Resume parsing</a></li>
+        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a href="reports.html">PDF reports</a></li>
+        <li><a class="active" href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>Database storage</h1>
+    <p class="subtitle">Persist, query, and retrieve your analysis results with any database.</p>
+
+    <h2>Overview</h2>
+    <p>
+      Reveilio can route analysis results to a database so you can store, query, and
+      retrieve them later. Four backends are supported out of the box:
+    </p>
+    <div class="card-grid">
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#db1)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="db1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><path d="M4 22V4c0-1.1.9-2 2-2h8.5L20 7.5V22"/><path d="M14 2v6h6"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></div>
+        <h3>SQLite</h3>
+        <p>Zero-config file-based storage. No server needed. Ships with Python.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#db2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="db2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+        <h3>PostgreSQL</h3>
+        <p>Production-grade relational database with JSONB support.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#db3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="db3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><rect x="2" y="3" width="20" height="18" rx="2" ry="2"/><line x1="2" y1="9" x2="22" y2="9"/><line x1="2" y1="15" x2="22" y2="15"/><line x1="10" y1="3" x2="10" y2="21"/></svg></div>
+        <h3>MySQL</h3>
+        <p>Widely deployed relational database with JSON column support.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="url(#db4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="db4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6c5ce7"/><stop offset="100%" stop-color="#00cec9"/></linearGradient></defs><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+        <h3>MongoDB</h3>
+        <p>Document-oriented database &mdash; a natural fit for nested analysis data.</p>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>SQLite requires no extra install.</strong> PostgreSQL, MySQL, and MongoDB
+      each need one additional pip package &mdash; see <a href="#installation">Installation</a> below.
+    </div>
+
+    <h2 id="installation">Installation</h2>
+    <p>SQLite works out of the box (it is part of the Python standard library). For other backends, install the relevant extra:</p>
+<pre><code><span class="tok-c"># PostgreSQL</span>
+pip install reveilio[postgresql]
+
+<span class="tok-c"># MySQL</span>
+pip install reveilio[mysql]
+
+<span class="tok-c"># MongoDB</span>
+pip install reveilio[mongodb]
+
+<span class="tok-c"># All database backends at once</span>
+pip install reveilio[all-db]</code></pre>
+
+    <h2>Connecting to a database</h2>
+    <p>
+      Call <code>reveilio.connect_db()</code> once at program start to establish a
+      connection. All subsequent <code>export_*</code> and <code>import_*</code> calls
+      use this connection automatically.
+    </p>
+
+    <h3>SQLite</h3>
+    <p>The simplest option &mdash; no server, no credentials, just a file path.</p>
+<pre><code><span class="tok-k">import</span> reveilio
+
+reveilio.connect_db(
+    <span class="tok-s">"sqlite"</span>,
+    filepath=<span class="tok-s">"my_analyses.db"</span>,      <span class="tok-c"># creates file if it doesn't exist</span>
+)</code></pre>
+    <p>If you omit <code>filepath</code>, it defaults to <code>reveilio.db</code> in the current directory.</p>
+
+    <h3>PostgreSQL</h3>
+<pre><code>reveilio.connect_db(
+    <span class="tok-s">"postgresql"</span>,
+    host=<span class="tok-s">"localhost"</span>,
+    port=<span class="tok-n">5432</span>,
+    database=<span class="tok-s">"recruitment"</span>,
+    username=<span class="tok-s">"admin"</span>,
+    password=<span class="tok-s">"secret"</span>,
+)</code></pre>
+    <p>Environment fallbacks: <code>REVEILIO_DB_HOST</code>, <code>REVEILIO_DB_PORT</code>,
+      <code>REVEILIO_DB_NAME</code>, <code>REVEILIO_DB_USER</code>, <code>REVEILIO_DB_PASSWORD</code>.</p>
+
+    <h3>MySQL</h3>
+<pre><code>reveilio.connect_db(
+    <span class="tok-s">"mysql"</span>,
+    host=<span class="tok-s">"db.example.com"</span>,
+    port=<span class="tok-n">3306</span>,
+    database=<span class="tok-s">"hiring"</span>,
+    username=<span class="tok-s">"root"</span>,
+    password=<span class="tok-s">"secret"</span>,
+)</code></pre>
+
+    <h3>MongoDB</h3>
+<pre><code>reveilio.connect_db(
+    <span class="tok-s">"mongodb"</span>,
+    host=<span class="tok-s">"localhost"</span>,
+    port=<span class="tok-n">27017</span>,
+    database=<span class="tok-s">"reveilio"</span>,
+    username=<span class="tok-s">"admin"</span>,               <span class="tok-c"># optional</span>
+    password=<span class="tok-s">"secret"</span>,              <span class="tok-c"># optional</span>
+)</code></pre>
+
+    <h3>Connection string override</h3>
+    <p>For any backend, you can pass a full connection string instead of individual parameters:</p>
+<pre><code>reveilio.connect_db(
+    <span class="tok-s">"postgresql"</span>,
+    connection_string=<span class="tok-s">"postgresql://user:pass@host:5432/mydb"</span>,
+)</code></pre>
+
+    <h3>Environment variables</h3>
+    <p>Every connection parameter can be set via environment variables. This is useful for
+      production deployments where credentials should not be in code:</p>
+    <table>
+      <thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead>
+      <tbody>
+        <tr><td><code>REVEILIO_DB_BACKEND</code></td><td>Database backend</td><td>sqlite</td></tr>
+        <tr><td><code>REVEILIO_DB_HOST</code></td><td>Database host</td><td>localhost</td></tr>
+        <tr><td><code>REVEILIO_DB_PORT</code></td><td>Database port</td><td>Backend default</td></tr>
+        <tr><td><code>REVEILIO_DB_NAME</code></td><td>Database name</td><td>reveilio</td></tr>
+        <tr><td><code>REVEILIO_DB_USER</code></td><td>Username</td><td>Backend default</td></tr>
+        <tr><td><code>REVEILIO_DB_PASSWORD</code></td><td>Password</td><td>&mdash;</td></tr>
+        <tr><td><code>REVEILIO_DB_FILEPATH</code></td><td>SQLite file path</td><td>reveilio.db</td></tr>
+        <tr><td><code>REVEILIO_DB_URL</code></td><td>Full connection string</td><td>&mdash;</td></tr>
+        <tr><td><code>REVEILIO_DB_TABLE</code></td><td>Table / collection name</td><td>reveilio_analyses</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Exporting results to the database</h2>
+    <p>After running an analysis, export the results to the database:</p>
+
+    <h3>Single result</h3>
+<pre><code><span class="tok-c"># Analyze and export</span>
+result = reveilio.analyze_resume(<span class="tok-s">"resume.pdf"</span>, jd)
+analysis_id = reveilio.export_result(result, job_title=<span class="tok-s">"Backend Engineer"</span>)
+print(f<span class="tok-s">"Stored as: {analysis_id}"</span>)</code></pre>
+
+    <h3>Batch export</h3>
+<pre><code><span class="tok-c"># Analyze a folder and export all results</span>
+results = reveilio.analyze_folder(<span class="tok-s">"./resumes"</span>, jd)
+ids = reveilio.export_results(results, job_title=<span class="tok-s">"Backend Engineer"</span>)
+print(f<span class="tok-s">"Stored {len(ids)} analyses"</span>)</code></pre>
+
+    <p>Each result is assigned a unique <code>analysis_id</code> (UUID). You can also
+      pass your own ID:</p>
+<pre><code>reveilio.export_result(result, analysis_id=<span class="tok-s">"my-custom-id-001"</span>)</code></pre>
+
+    <h2>Importing results from the database</h2>
+
+    <h3>Load by ID</h3>
+<pre><code>result = reveilio.import_result(<span class="tok-s">"analysis-uuid-here"</span>)
+print(result.overall_score, result.recommendation)</code></pre>
+
+    <h3>Load recent results</h3>
+<pre><code><span class="tok-c"># Load the 10 most recent analyses</span>
+results = reveilio.import_results(limit=<span class="tok-n">10</span>)
+
+<span class="tok-c"># Load with pagination</span>
+page_2 = reveilio.import_results(limit=<span class="tok-n">10</span>, offset=<span class="tok-n">10</span>)
+
+<span class="tok-c"># Sort by score instead of date</span>
+top_scores = reveilio.import_results(order_by=<span class="tok-s">"overall_score"</span>, descending=<span class="tok-k">True</span>)</code></pre>
+
+    <h3>List analyses (metadata only)</h3>
+    <p>When you just need a summary without the full analysis data:</p>
+<pre><code>entries = reveilio.list_analyses(limit=<span class="tok-n">20</span>)
+<span class="tok-k">for</span> entry <span class="tok-k">in</span> entries:
+    print(f<span class="tok-s">"{entry['candidate_name']}: {entry['overall_score']} - {entry['recommendation']}"</span>)</code></pre>
+    <p>Returns dicts with: <code>analysis_id</code>, <code>candidate_name</code>,
+      <code>overall_score</code>, <code>confidence_level</code>, <code>recommendation</code>,
+      <code>job_title</code>, <code>created_at</code>.</p>
+
+    <h2>Querying with filters</h2>
+    <p>Use <code>query_results()</code> to find analyses matching specific criteria.
+      All filters are optional and combined with AND logic:</p>
+<pre><code><span class="tok-c"># Candidates scoring above 80</span>
+top = reveilio.query_results(min_score=<span class="tok-n">80</span>)
+
+<span class="tok-c"># Shortlisted candidates for a specific role</span>
+shortlisted = reveilio.query_results(
+    recommendation=<span class="tok-s">"Shortlist"</span>,
+    job_title=<span class="tok-s">"Backend Engineer"</span>,
+)
+
+<span class="tok-c"># Search by candidate name</span>
+matches = reveilio.query_results(candidate_name=<span class="tok-s">"John"</span>)
+
+<span class="tok-c"># Combine multiple filters</span>
+precise = reveilio.query_results(
+    min_score=<span class="tok-n">70</span>,
+    max_score=<span class="tok-n">95</span>,
+    recommendation=<span class="tok-s">"Shortlist"</span>,
+    limit=<span class="tok-n">50</span>,
+)</code></pre>
+
+    <table>
+      <thead><tr><th>Filter</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>candidate_name</code></td><td>str</td><td>Partial name match (case-insensitive for MongoDB)</td></tr>
+        <tr><td><code>min_score</code></td><td>float</td><td>Minimum overall score (inclusive)</td></tr>
+        <tr><td><code>max_score</code></td><td>float</td><td>Maximum overall score (inclusive)</td></tr>
+        <tr><td><code>recommendation</code></td><td>str</td><td>Exact match: "Shortlist", "Needs Review", or "Not Suitable"</td></tr>
+        <tr><td><code>job_title</code></td><td>str</td><td>Partial match on the job title tag</td></tr>
+        <tr><td><code>limit</code></td><td>int</td><td>Max results to return (default: 100)</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Deleting results</h2>
+<pre><code><span class="tok-c"># Delete by analysis ID</span>
+deleted = reveilio.delete_result(<span class="tok-s">"analysis-uuid-here"</span>)
+<span class="tok-k">if</span> deleted:
+    print(<span class="tok-s">"Record removed"</span>)</code></pre>
+
+    <h2>Disconnecting</h2>
+    <p>Close the database connection when you are done:</p>
+<pre><code>reveilio.disconnect_db()</code></pre>
+    <p>Calling <code>connect_db()</code> again after disconnecting opens a fresh connection.
+      If you call <code>connect_db()</code> while already connected, the old connection is
+      closed automatically before opening the new one.</p>
+
+    <h2>Switching databases at runtime</h2>
+    <p>Just call <code>connect_db()</code> again. The previous connection is closed automatically:</p>
+<pre><code><span class="tok-c"># Start with SQLite for local dev</span>
+reveilio.connect_db(<span class="tok-s">"sqlite"</span>, filepath=<span class="tok-s">"dev.db"</span>)
+reveilio.export_results(results)
+
+<span class="tok-c"># Switch to PostgreSQL for production</span>
+reveilio.connect_db(<span class="tok-s">"postgresql"</span>, host=<span class="tok-s">"prod-db.internal"</span>, database=<span class="tok-s">"hiring"</span>, ...)
+reveilio.export_results(results)</code></pre>
+
+    <h2>Database schema</h2>
+    <p>Reveilio automatically creates the required table (or collection for MongoDB) on first
+      connection. The schema stores both queryable metadata columns and the full analysis
+      payload as JSON:</p>
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>INTEGER / SERIAL</td><td>Auto-increment primary key</td></tr>
+        <tr><td><code>analysis_id</code></td><td>VARCHAR (unique)</td><td>UUID or custom identifier</td></tr>
+        <tr><td><code>candidate_name</code></td><td>VARCHAR</td><td>Extracted from candidate_data</td></tr>
+        <tr><td><code>overall_score</code></td><td>FLOAT</td><td>The numeric match score (0&ndash;100)</td></tr>
+        <tr><td><code>confidence_level</code></td><td>VARCHAR</td><td>High / Medium / Low</td></tr>
+        <tr><td><code>recommendation</code></td><td>VARCHAR</td><td>Shortlist / Needs Review / Not Suitable</td></tr>
+        <tr><td><code>job_title</code></td><td>VARCHAR</td><td>User-supplied job title tag</td></tr>
+        <tr><td><code>data</code></td><td>JSON / JSONB</td><td>Full AnalysisResult payload</td></tr>
+        <tr><td><code>created_at</code></td><td>TIMESTAMP</td><td>When the record was stored</td></tr>
+        <tr><td><code>updated_at</code></td><td>TIMESTAMP</td><td>Last update timestamp</td></tr>
+      </tbody>
+    </table>
+    <p>Indexes are created on <code>analysis_id</code> (unique), <code>candidate_name</code>,
+      <code>overall_score</code>, and <code>recommendation</code> for fast querying.</p>
+
+    <h2>Custom table name</h2>
+    <p>By default the table is called <code>reveilio_analyses</code>. You can change it:</p>
+<pre><code>reveilio.connect_db(<span class="tok-s">"sqlite"</span>, table_name=<span class="tok-s">"q1_hiring_2026"</span>)</code></pre>
+
+    <h2>Full workflow example</h2>
+<pre><code><span class="tok-k">import</span> reveilio
+
+<span class="tok-c"># 1. Configure LLM</span>
+reveilio.configure(provider=<span class="tok-s">"gemini"</span>, api_key=<span class="tok-s">"AIza..."</span>)
+
+<span class="tok-c"># 2. Connect to database</span>
+reveilio.connect_db(<span class="tok-s">"sqlite"</span>, filepath=<span class="tok-s">"hiring_q1.db"</span>)
+
+<span class="tok-c"># 3. Run analysis</span>
+jd = reveilio.JobDescription.from_file(<span class="tok-s">"backend_jd.pdf"</span>)
+results = reveilio.analyze_folder(<span class="tok-s">"./resumes"</span>, jd)
+
+<span class="tok-c"># 4. Export to database</span>
+ids = reveilio.export_results(results, job_title=<span class="tok-s">"Backend Engineer"</span>)
+print(f<span class="tok-s">"Saved {len(ids)} candidates"</span>)
+
+<span class="tok-c"># 5. Query later</span>
+shortlisted = reveilio.query_results(
+    recommendation=<span class="tok-s">"Shortlist"</span>,
+    min_score=<span class="tok-n">75</span>,
+)
+<span class="tok-k">for</span> r <span class="tok-k">in</span> shortlisted:
+    name = r.candidate_data.name <span class="tok-k">if</span> r.candidate_data <span class="tok-k">else</span> <span class="tok-s">"Unknown"</span>
+    print(f<span class="tok-s">"  {name}: {r.overall_score}/100 &mdash; {r.recommendation}"</span>)
+
+<span class="tok-c"># 6. Generate PDF reports for shortlisted</span>
+<span class="tok-k">for</span> r <span class="tok-k">in</span> shortlisted:
+    name = r.candidate_data.name.replace(<span class="tok-s">" "</span>, <span class="tok-s">"_"</span>) <span class="tok-k">if</span> r.candidate_data <span class="tok-k">else</span> <span class="tok-s">"candidate"</span>
+    reveilio.save_report_pdf(r, f<span class="tok-s">"reports/{name}.pdf"</span>)
+
+<span class="tok-c"># 7. Disconnect when done</span>
+reveilio.disconnect_db()</code></pre>
+
+    <div class="note">
+      <strong>Tip:</strong> You can use the database and PDF reports together.
+      Export all results to the database for queryability, and generate PDFs
+      only for the shortlisted candidates.
+    </div>
+
+    <p>Continue to <a href="guides.html">Guides</a>.</p>
+    <footer>&copy; 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>
