@@ -1,18 +1,18 @@
 <p align="center">
-  <img src="docs/assets/logo.png" alt="Reveilio logo" width="120" />
+  <img src="https://raw.githubusercontent.com/roosterhr/reveilio/main/docs/assets/logo.png" alt="Reveilio logo" width="120" />
 </p>
 
 <h1 align="center">reveilio</h1>
 
 <p align="center">
-  LLM-powered resume and job-description matching and scoring.
+  AI-powered resume and job-description matching and scoring.
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/reveilio/"><img src="https://img.shields.io/pypi/v/reveilio.svg" alt="PyPI"></a>
-  <a href="https://github.com/roosterhr/reveilio/actions"><img src="https://github.com/roosterhr/reveilio/actions/workflows/ci.yml/badge.svg" alt="Tests"></a>
-  <a href="https://github.com/roosterhr/reveilio/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python"></a>
+  <a href="https://pypi.org/project/reveilio/"><img src="https://img.shields.io/pypi/v/reveilio.svg" alt="PyPI" /></a>
+  <a href="https://github.com/roosterhr/reveilio/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/roosterhr/reveilio/ci.yml?branch=main&label=tests" alt="Tests" /></a>
+  <a href="https://github.com/roosterhr/reveilio/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python" /></a>
 </p>
 
 Reveilio takes a **job description** (file or free text) and one or many
@@ -90,7 +90,7 @@ Contributions are welcome. The full contributing guide is in
 ### 1. Fork and clone
 
 ```bash
-git clone https://github.com/<your-username>/reveilio.git
+git clone https://github.com/roosterhr/reveilio.git
 cd reveilio
 ```
 
