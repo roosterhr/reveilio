@@ -4,6 +4,7 @@ Ported from the original backend's ``dynamic_llm.py`` but reads all
 credentials from :class:`reveilio.config.ReveilioConfig` instead of
 FastAPI settings.
 """
+
 from __future__ import annotations
 
 import logging
@@ -34,7 +35,9 @@ def json_completion(
     if provider == "gemini":
         return _gemini(cfg, system_prompt, user_prompt, temperature, response_json)
     if provider == "openai":
-        return _openai_like(cfg, system_prompt, user_prompt, temperature, response_json, azure=False)
+        return _openai_like(
+            cfg, system_prompt, user_prompt, temperature, response_json, azure=False
+        )
     if provider == "azure":
         return _openai_like(cfg, system_prompt, user_prompt, temperature, response_json, azure=True)
     if provider == "ollama":
@@ -61,14 +64,14 @@ def _gemini(cfg, system_prompt, user_prompt, temperature, response_json) -> str:
     return resp.text or ""
 
 
-def _openai_like(cfg, system_prompt, user_prompt, temperature, response_json, *, azure: bool) -> str:
+def _openai_like(
+    cfg, system_prompt, user_prompt, temperature, response_json, *, azure: bool
+) -> str:
     import openai
 
     if azure:
         if not (cfg.api_key and cfg.azure_endpoint and cfg.azure_deployment):
-            raise ValueError(
-                "Azure OpenAI requires api_key, azure_endpoint, and azure_deployment."
-            )
+            raise ValueError("Azure OpenAI requires api_key, azure_endpoint, and azure_deployment.")
         client = openai.AzureOpenAI(
             api_key=cfg.api_key,
             azure_endpoint=cfg.azure_endpoint,

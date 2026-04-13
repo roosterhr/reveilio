@@ -5,6 +5,7 @@ structured parse (produced by the LLM). Users can create multiple
 independent ``JobDescription`` instances (one per role) and reuse each
 against different resumes.
 """
+
 from __future__ import annotations
 
 import json

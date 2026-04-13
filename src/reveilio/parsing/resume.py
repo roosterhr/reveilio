@@ -4,6 +4,7 @@ A :class:`Resume` simply wraps the extracted plain text of a candidate's
 resume. Structured parsing + scoring happens in :mod:`reveilio.scoring`,
 which combines both in a single LLM call.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

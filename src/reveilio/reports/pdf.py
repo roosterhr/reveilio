@@ -3,6 +3,7 @@
 Ported from ``backend/app/services/pdf_service.py``. Returns an
 ``io.BytesIO`` buffer that callers can write to disk or stream.
 """
+
 from __future__ import annotations
 
 import io
@@ -81,11 +82,15 @@ def generate_candidate_report(result: dict[str, Any]) -> io.BytesIO:
     el.append(Paragraph("Candidate Evaluation Report", s["title"]))
     el.append(Paragraph(f"Role: {position}", s["sub_heading"]))
     el.append(Paragraph(f"Name: {name}", s["heading"]))
-    el.append(Paragraph(f"Score: {int(overall)}% | Recommendation: {recommendation}", s["sub_heading"]))
+    el.append(
+        Paragraph(f"Score: {int(overall)}% | Recommendation: {recommendation}", s["sub_heading"])
+    )
     el.append(Spacer(1, 0.2 * inch))
 
     el.append(Paragraph("Executive Summary", s["heading"]))
-    el.append(Paragraph(_md(result.get("ai_summary", "No summary available."), "#000000"), s["body"]))
+    el.append(
+        Paragraph(_md(result.get("ai_summary", "No summary available."), "#000000"), s["body"])
+    )
     el.append(Spacer(1, 0.2 * inch))
 
     suggested_roles = result.get("suggested_roles") or []
@@ -139,7 +144,10 @@ def generate_candidate_report(result: dict[str, Any]) -> io.BytesIO:
     w_text = "".join(f"• {_md(x, '#ef4444')}<br/>" for x in weaknesses)
     insight_table = Table(
         [
-            [Paragraph("<b>Strengths</b>", s["sub_heading"]), Paragraph("<b>Gaps/Weaknesses</b>", s["sub_heading"])],
+            [
+                Paragraph("<b>Strengths</b>", s["sub_heading"]),
+                Paragraph("<b>Gaps/Weaknesses</b>", s["sub_heading"]),
+            ],
             [Paragraph(s_text, s["body"]), Paragraph(w_text, s["body"])],
         ],
         colWidths=[2.5 * inch, 2.5 * inch],
@@ -255,7 +263,12 @@ def generate_batch_report(results: list[dict[str, Any]]) -> io.BytesIO:
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("ROWBACKGROUNDS", (1, 1), (-1, -1), [colors.whitesmoke, colors.HexColor("#f1f5f9")]),
+                (
+                    "ROWBACKGROUNDS",
+                    (1, 1),
+                    (-1, -1),
+                    [colors.whitesmoke, colors.HexColor("#f1f5f9")],
+                ),
             ]
         )
     )
