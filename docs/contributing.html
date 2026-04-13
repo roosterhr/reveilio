@@ -1,191 +1,212 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Contributing | reveilio</title>
-<link rel="icon" type="image/png" href="assets/logo.png" />
-<link rel="stylesheet" href="assets/style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contributing | reveilio</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="assets/style.css" />
 </head>
+
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 · docs</small></div></div>
-    <nav>
-      <div class="section-label">Getting started</div>
-      <ul>
-        <li><a href="index.html">Overview</a></li>
-        <li><a href="installation.html">Installation</a></li>
-        <li><a href="quickstart.html">Quickstart</a></li>
-      </ul>
-      <div class="section-label">Core features</div>
-      <ul>
-        <li><a href="configuration.html">Configuration &amp; providers</a></li>
-        <li><a href="job-descriptions.html">Job descriptions</a></li>
-        <li><a href="resume-parsing.html">Resume parsing</a></li>
-        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
-        <li><a href="reports.html">PDF reports</a></li>
-        <li><a href="database.html">Database storage</a></li>
-      </ul>
-      <div class="section-label">Using reveilio</div>
-      <ul>
-        <li><a href="guides.html">Guides</a></li>
-        <li><a href="api-reference.html">API reference</a></li>
-      </ul>
-      <div class="section-label">Deep dive</div>
-      <ul>
-        <li><a href="architecture.html">Architecture</a></li>
-        <li><a class="active" href="contributing.html">Contributing</a></li>
-      </ul>
-    </nav>
-  </aside>
-  <main>
-    <h1>Contributing</h1>
-    <p class="subtitle">Thank you for considering a contribution to reveilio. This page explains how to report issues, propose changes, and submit pull requests.</p>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" />
+        <div>
+          <h1>reveilio</h1><small>v0.1.0 · docs</small>
+        </div>
+      </div>
+      <nav>
+        <div class="section-label">Getting started</div>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="installation.html">Installation</a></li>
+          <li><a href="quickstart.html">Quickstart</a></li>
+        </ul>
+        <div class="section-label">Core features</div>
+        <ul>
+          <li><a href="configuration.html">Configuration &amp; providers</a></li>
+          <li><a href="job-descriptions.html">Job descriptions</a></li>
+          <li><a href="resume-parsing.html">Resume parsing</a></li>
+          <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+          <li><a href="reports.html">PDF reports</a></li>
+          <li><a href="database.html">Database storage</a></li>
+        </ul>
+        <div class="section-label">Using reveilio</div>
+        <ul>
+          <li><a href="guides.html">Guides</a></li>
+          <li><a href="api-reference.html">API reference</a></li>
+        </ul>
+        <div class="section-label">Deep dive</div>
+        <ul>
+          <li><a href="architecture.html">Architecture</a></li>
+          <li><a class="active" href="contributing.html">Contributing</a></li>
+        </ul>
+      </nav>
+    </aside>
+    <main>
+      <h1>Contributing</h1>
+      <p class="subtitle">Thank you for considering a contribution to reveilio. This page explains how to report issues,
+        propose changes, and submit pull requests.</p>
 
-    <h2>Ways to contribute</h2>
-    <ul>
-      <li><strong>Report a bug</strong> with a minimal, reproducible example.</li>
-      <li><strong>Suggest a feature</strong> by opening an issue before writing code, so we can agree on scope.</li>
-      <li><strong>Improve documentation</strong>, including typos, clarifications, and new examples.</li>
-      <li><strong>Submit a pull request</strong> for a bug fix, performance improvement, or new provider integration.</li>
-    </ul>
+      <h2>Ways to contribute</h2>
+      <ul>
+        <li><strong>Report a bug</strong> with a minimal, reproducible example.</li>
+        <li><strong>Suggest a feature</strong> by opening an issue before writing code, so we can agree on scope.</li>
+        <li><strong>Improve documentation</strong>, including typos, clarifications, and new examples.</li>
+        <li><strong>Submit a pull request</strong> for a bug fix, performance improvement, or new provider integration.
+        </li>
+      </ul>
 
-    <h2>Before you start</h2>
-    <ol>
-      <li>Search <a href="https://github.com/roosterhr/reveilio/issues" target="_blank" rel="noreferrer">existing issues and pull requests</a> to avoid duplicating effort.</li>
-      <li>For anything beyond a small fix or typo, open an issue first and wait for maintainer feedback before writing code.</li>
-      <li>Make sure your change fits the project scope: reveilio is a library for LLM-driven resume scoring. Features that require a web server or external scraping service are out of scope.</li>
-    </ol>
+      <h2>Before you start</h2>
+      <ol>
+        <li>Search <a href="https://github.com/roosterhr/reveilio/issues" target="_blank" rel="noreferrer">existing
+            issues and pull requests</a> to avoid duplicating effort.</li>
+        <li>For anything beyond a small fix or typo, open an issue first and wait for maintainer feedback before writing
+          code.</li>
+        <li>Make sure your change fits the project scope: reveilio is a library for LLM-driven resume scoring. Features
+          that require a web server or external scraping service are out of scope.</li>
+      </ol>
 
-    <h2>Development setup</h2>
-    <p>Step-by-step setup for a new contributor:</p>
-    <ol>
-      <li><strong>Fork and clone</strong> the repository:
-<pre><code>git clone https://github.com/&lt;your-username&gt;/reveilio.git
+      <h2>Development setup</h2>
+      <p>Step-by-step setup for a new contributor:</p>
+      <ol>
+        <li><strong>Fork and clone</strong> the repository:
+          <pre><code>git clone https://github.com/&lt;roosterhr&gt;/reveilio.git
 cd reveilio</code></pre>
-      </li>
-      <li><strong>Create a virtual environment</strong> (Python 3.9 or later):
-<pre><code>python -m venv .venv
+        </li>
+        <li><strong>Create a virtual environment</strong> (Python 3.9 or later):
+          <pre><code>python -m venv .venv
 # Linux / macOS
 source .venv/bin/activate
 # Windows (PowerShell)
 .venv\Scripts\Activate.ps1</code></pre>
-      </li>
-      <li><strong>Install in editable mode with dev dependencies</strong>:
-<pre><code>pip install -e ".[dev]"</code></pre>
-      </li>
-      <li><strong>Run the test suite</strong> to confirm a clean baseline:
-<pre><code>pytest</code></pre>
-      </li>
-    </ol>
+        </li>
+        <li><strong>Install in editable mode with dev dependencies</strong>:
+          <pre><code>pip install -e ".[dev]"</code></pre>
+        </li>
+        <li><strong>Run the test suite</strong> to confirm a clean baseline:
+          <pre><code>pytest</code></pre>
+        </li>
+      </ol>
 
-    <h2>Creating a branch</h2>
-    <p>Use a descriptive branch name that reflects the change. Suggested prefixes:</p>
-    <ul>
-      <li><code>fix/</code> for bug fixes, e.g. <code>fix/docx-extraction-empty-paragraphs</code></li>
-      <li><code>feat/</code> for new features, e.g. <code>feat/mistral-provider</code></li>
-      <li><code>docs/</code> for documentation changes, e.g. <code>docs/configuration-azure-example</code></li>
-      <li><code>refactor/</code> for internal restructuring with no behavior change</li>
-    </ul>
-<pre><code>git checkout -b feat/my-change</code></pre>
+      <h2>Creating a branch</h2>
+      <p>Use a descriptive branch name that reflects the change. Suggested prefixes:</p>
+      <ul>
+        <li><code>fix/</code> for bug fixes, e.g. <code>fix/docx-extraction-empty-paragraphs</code></li>
+        <li><code>feat/</code> for new features, e.g. <code>feat/mistral-provider</code></li>
+        <li><code>docs/</code> for documentation changes, e.g. <code>docs/configuration-azure-example</code></li>
+        <li><code>refactor/</code> for internal restructuring with no behavior change</li>
+      </ul>
+      <pre><code>git checkout -b feat/my-change</code></pre>
 
-    <h2>Making your change</h2>
-    <ol>
-      <li><strong>Keep the change focused.</strong> One pull request should address one concern. Unrelated cleanups belong in separate PRs.</li>
-      <li><strong>Match the existing style.</strong> Follow the patterns in the surrounding code. Reveilio avoids over-abstraction, so prefer a direct fix to a new helper.</li>
-      <li><strong>Add or update tests.</strong> Every bug fix should include a regression test. Every new feature should include unit tests that exercise its public surface. Tests live in <code>tests/</code> and must not make real LLM calls; mock <code>json_completion</code> as the existing tests do.</li>
-      <li><strong>Update the documentation.</strong> If you add a public function, class, argument, or environment variable, update the relevant HTML pages under <code>docs/</code> (Quickstart, Configuration, API reference, or Guides as appropriate).</li>
-      <li><strong>Do not introduce new runtime dependencies</strong> without discussion. Added dependencies increase the install footprint and attack surface.</li>
-    </ol>
+      <h2>Making your change</h2>
+      <ol>
+        <li><strong>Keep the change focused.</strong> One pull request should address one concern. Unrelated cleanups
+          belong in separate PRs.</li>
+        <li><strong>Match the existing style.</strong> Follow the patterns in the surrounding code. Reveilio avoids
+          over-abstraction, so prefer a direct fix to a new helper.</li>
+        <li><strong>Add or update tests.</strong> Every bug fix should include a regression test. Every new feature
+          should include unit tests that exercise its public surface. Tests live in <code>tests/</code> and must not
+          make real LLM calls; mock <code>json_completion</code> as the existing tests do.</li>
+        <li><strong>Update the documentation.</strong> If you add a public function, class, argument, or environment
+          variable, update the relevant HTML pages under <code>docs/</code> (Quickstart, Configuration, API reference,
+          or Guides as appropriate).</li>
+        <li><strong>Do not introduce new runtime dependencies</strong> without discussion. Added dependencies increase
+          the install footprint and attack surface.</li>
+      </ol>
 
-    <h2>Writing good commits</h2>
-    <ul>
-      <li>Write imperative, present-tense subjects: "Add Mistral provider", not "Added" or "Adds".</li>
-      <li>Keep the subject line at 72 characters or fewer.</li>
-      <li>Explain <em>why</em> in the body, not just what changed.</li>
-      <li>Reference related issues with <code>Fixes #123</code> or <code>Refs #123</code>.</li>
-    </ul>
+      <h2>Writing good commits</h2>
+      <ul>
+        <li>Write imperative, present-tense subjects: "Add Mistral provider", not "Added" or "Adds".</li>
+        <li>Keep the subject line at 72 characters or fewer.</li>
+        <li>Explain <em>why</em> in the body, not just what changed.</li>
+        <li>Reference related issues with <code>Fixes #123</code> or <code>Refs #123</code>.</li>
+      </ul>
 
-    <h2>Running the tests and checks</h2>
-    <p>Before opening a pull request, run the full test suite locally:</p>
-<pre><code>pytest -q</code></pre>
-    <p>All tests must pass. If you add optional dependencies, include the install command in your PR description so reviewers can reproduce your environment.</p>
+      <h2>Running the tests and checks</h2>
+      <p>Before opening a pull request, run the full test suite locally:</p>
+      <pre><code>pytest -q</code></pre>
+      <p>All tests must pass. If you add optional dependencies, include the install command in your PR description so
+        reviewers can reproduce your environment.</p>
 
-    <h2>Opening a pull request</h2>
-    <ol>
-      <li><strong>Push your branch</strong> to your fork:
-<pre><code>git push origin feat/my-change</code></pre>
-      </li>
-      <li><strong>Open a pull request</strong> against <code>main</code>.</li>
-      <li><strong>Fill out the PR template</strong> with:
-        <ul>
-          <li>A short summary of the change.</li>
-          <li>The motivation or linked issue.</li>
-          <li>Any manual testing performed.</li>
-          <li>Screenshots for documentation or UI changes (if applicable).</li>
-        </ul>
-      </li>
-      <li><strong>Request review</strong> and respond to feedback promptly. Keep the discussion on the PR, not in private channels.</li>
-      <li><strong>Rebase, do not merge</strong>, if <code>main</code> advances while your PR is open:
-<pre><code>git fetch origin
+      <h2>Opening a pull request</h2>
+      <ol>
+        <li><strong>Push your branch</strong> to your fork:
+          <pre><code>git push origin feat/my-change</code></pre>
+        </li>
+        <li><strong>Open a pull request</strong> against <code>main</code>.</li>
+        <li><strong>Fill out the PR template</strong> with:
+          <ul>
+            <li>A short summary of the change.</li>
+            <li>The motivation or linked issue.</li>
+            <li>Any manual testing performed.</li>
+            <li>Screenshots for documentation or UI changes (if applicable).</li>
+          </ul>
+        </li>
+        <li><strong>Request review</strong> and respond to feedback promptly. Keep the discussion on the PR, not in
+          private channels.</li>
+        <li><strong>Rebase, do not merge</strong>, if <code>main</code> advances while your PR is open:
+          <pre><code>git fetch origin
 git rebase origin/main
 git push --force-with-lease</code></pre>
-      </li>
-    </ol>
+        </li>
+      </ol>
 
-    <h2>Review and merge</h2>
-    <ul>
-      <li>A maintainer will review your PR and may request changes.</li>
-      <li>All discussion threads must be resolved before merge.</li>
-      <li>The continuous integration suite must be green.</li>
-      <li>Pull requests are typically squash-merged to keep the main history linear.</li>
-    </ul>
+      <h2>Review and merge</h2>
+      <ul>
+        <li>A maintainer will review your PR and may request changes.</li>
+        <li>All discussion threads must be resolved before merge.</li>
+        <li>The continuous integration suite must be green.</li>
+        <li>Pull requests are typically squash-merged to keep the main history linear.</li>
+      </ul>
 
-    <h2>Reporting security issues</h2>
-    <p>
-      Please do not report security vulnerabilities through public GitHub issues. Instead,
-      email the maintainers privately with a detailed description and, if possible, a
-      proof of concept. You will receive an acknowledgement within a few working days.
-    </p>
+      <h2>Reporting security issues</h2>
+      <p>
+        Please do not report security vulnerabilities through public GitHub issues. Instead,
+        email the maintainers privately with a detailed description and, if possible, a
+        proof of concept. You will receive an acknowledgement within a few working days.
+      </p>
 
-    <h2>Code of conduct</h2>
-    <p>
-      By participating in this project, you agree to treat other contributors with respect.
-      Be constructive in reviews, assume good intent, and keep discussion focused on the
-      work.
-    </p>
+      <h2>Code of conduct</h2>
+      <p>
+        By participating in this project, you agree to treat other contributors with respect.
+        Be constructive in reviews, assume good intent, and keep discussion focused on the
+        work.
+      </p>
 
-    <div class="tip">
-      <strong>Not sure where to start?</strong> Look for issues tagged
-      <code>good first issue</code> on GitHub, or open a discussion if you have an idea
-      and are unsure whether it fits the project scope.
-    </div>
+      <div class="tip">
+        <strong>Not sure where to start?</strong> Look for issues tagged
+        <code>good first issue</code> on GitHub, or open a discussion if you have an idea
+        and are unsure whether it fits the project scope.
+      </div>
 
-    <footer>© 2026 Reveilio</footer>
-  </main>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('pre').forEach(function(pre) {
-    var btn = document.createElement('button');
-    btn.className = 'copy-btn';
-    btn.textContent = 'Copy';
-    btn.addEventListener('click', function() {
-      var code = pre.querySelector('code');
-      var text = (code || pre).textContent;
-      navigator.clipboard.writeText(text).then(function() {
-        btn.textContent = 'Copied';
-        btn.classList.add('copied');
-        setTimeout(function() {
-          btn.textContent = 'Copy';
-          btn.classList.remove('copied');
-        }, 1500);
+      <footer>© 2026 Reveilio</footer>
+    </main>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('pre').forEach(function (pre) {
+        var btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.textContent = 'Copy';
+        btn.addEventListener('click', function () {
+          var code = pre.querySelector('code');
+          var text = (code || pre).textContent;
+          navigator.clipboard.writeText(text).then(function () {
+            btn.textContent = 'Copied';
+            btn.classList.add('copied');
+            setTimeout(function () {
+              btn.textContent = 'Copy';
+              btn.classList.remove('copied');
+            }, 1500);
+          });
+        });
+        pre.appendChild(btn);
       });
     });
-    pre.appendChild(btn);
-  });
-});
-</script>
+  </script>
 </body>
+
 </html>
