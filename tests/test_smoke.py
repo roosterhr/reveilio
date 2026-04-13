@@ -1,4 +1,5 @@
 """Smoke tests. No real LLM calls; the LLM layer is monkey-patched."""
+
 from __future__ import annotations
 
 import json
@@ -19,10 +20,15 @@ def _reset_config():
 @pytest.fixture
 def fake_llm(monkeypatch):
     """Patch json_completion everywhere it's imported."""
+
     def _fake(system_prompt, user_prompt, **_kwargs):
         if "job description parser" in system_prompt.lower():
             return json.dumps(
-                {"position_title": "Senior Python Engineer", "required_skills": ["Python"], "required_experience": 5}
+                {
+                    "position_title": "Senior Python Engineer",
+                    "required_skills": ["Python"],
+                    "required_experience": 5,
+                }
             )
         # scoring prompt
         return json.dumps(

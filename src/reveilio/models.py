@@ -1,4 +1,5 @@
 """Pydantic models for reveilio analysis results."""
+
 from __future__ import annotations
 
 from typing import Any

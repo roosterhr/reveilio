@@ -4,6 +4,7 @@ All functions here accept either file paths, raw bytes, free text, or
 pre-built :class:`JobDescription` / :class:`Resume` objects, and return
 plain dicts (or :class:`AnalysisResult` models).
 """
+
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed

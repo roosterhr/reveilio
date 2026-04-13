@@ -1,6 +1,7 @@
 """Combined extract-and-score: one LLM call produces the structured
 candidate data plus a weighted match score against the JD.
 """
+
 from __future__ import annotations
 
 import json
@@ -73,7 +74,9 @@ def calculate_match(
                 ds[key].setdefault("reasoning", "No detailed reasoning provided.")
         result["detailed_scores"] = ds
 
-        if not _is_shortlist(result.get("recommendation")) or not isinstance(result.get("suggested_questions"), list):
+        if not _is_shortlist(result.get("recommendation")) or not isinstance(
+            result.get("suggested_questions"), list
+        ):
             result["suggested_questions"] = []
 
         return result

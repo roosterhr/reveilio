@@ -1,4 +1,5 @@
 """System/user prompt builders for the combined extract-and-score call."""
+
 from __future__ import annotations
 
 import json

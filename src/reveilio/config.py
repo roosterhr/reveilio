@@ -4,6 +4,7 @@ Users call :func:`configure` once (typically at program start) to set the
 LLM provider and credentials. All downstream functions read from the
 singleton returned by :func:`get_config`.
 """
+
 from __future__ import annotations
 
 import os
@@ -108,9 +109,7 @@ def configure(
         azure_endpoint = azure_endpoint or os.environ.get("AZURE_OPENAI_ENDPOINT")
         azure_deployment = azure_deployment or os.environ.get("AZURE_OPENAI_DEPLOYMENT")
         azure_api_version = (
-            azure_api_version
-            or os.environ.get("AZURE_OPENAI_API_VERSION")
-            or "2024-02-15-preview"
+            azure_api_version or os.environ.get("AZURE_OPENAI_API_VERSION") or "2024-02-15-preview"
         )
     if provider == "ollama" and not base_url:
         base_url = os.environ.get("OLLAMA_BASE_URL") or "http://localhost:11434"

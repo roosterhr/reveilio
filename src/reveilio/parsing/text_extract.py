@@ -4,6 +4,7 @@ Supports the extensions: ``.pdf``, ``.docx``, ``.doc``, ``.txt``.
 Free text (``str``) is handled at a higher level. These helpers operate
 on file bytes.
 """
+
 from __future__ import annotations
 
 import contextlib
