@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Docker &amp; UI | reveilio</title>
+<link rel="icon" type="image/png" href="assets/logo.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><img class="logo" src="assets/logo.png" alt="Reveilio logo" /><div><h1>reveilio</h1><small>v0.1.0 · docs</small></div></div>
+    <nav>
+      <div class="section-label">Getting started</div>
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="installation.html">Installation</a></li>
+        <li><a href="quickstart.html">Quickstart</a></li>
+      </ul>
+      <div class="section-label">Core features</div>
+      <ul>
+        <li><a href="configuration.html">Configuration &amp; providers</a></li>
+        <li><a href="job-descriptions.html">Job descriptions</a></li>
+        <li><a href="resume-parsing.html">Resume parsing</a></li>
+        <li><a href="scoring.html">Scoring &amp; analysis</a></li>
+        <li><a href="reports.html">PDF reports</a></li>
+        <li><a href="database.html">Database storage</a></li>
+      </ul>
+      <div class="section-label">Using reveilio</div>
+      <ul>
+        <li><a href="guides.html">Guides</a></li>
+        <li><a href="api-reference.html">API reference</a></li>
+      </ul>
+      <div class="section-label">Deployment</div>
+      <ul>
+        <li><a class="active" href="docker.html">Docker &amp; UI</a></li>
+      </ul>
+      <div class="section-label">Deep dive</div>
+      <ul>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="contributing.html">Contributing</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main>
+    <h1>Docker &amp; Streamlit UI</h1>
+    <p class="subtitle">Run reveilio as a self-contained Streamlit app on <code>localhost:8501</code>. All library features — provider configuration, JD parsing, resume scoring, database storage, and PDF reports — are exposed through a browser UI. No Python install required beyond Docker itself.</p>
+
+    <div class="note">
+      <strong>When to pick Docker vs. pip:</strong> use <code>pip install reveilio</code> if you're building your own Python script or integrating reveilio into a backend. Use Docker if you want a ready-to-use UI for non-developer reviewers, or if you'd rather not manage a Python environment.
+    </div>
+
+    <h2>Requirements</h2>
+    <ul>
+      <li><strong>Docker Engine 24+</strong> (or Docker Desktop on macOS/Windows) with Compose v2.</li>
+      <li>2 GB RAM and ~1 GB disk for the image.</li>
+      <li>An API key for one of the supported providers (Gemini, OpenAI, Azure), or a reachable Ollama instance.</li>
+    </ul>
+
+    <h2>Quick start</h2>
+<pre><code>git clone https://github.com/roosterhr/reveilio.git
+cd reveilio
+docker compose up --build</code></pre>
+    <p>Then open <a href="http://localhost:8501" target="_blank" rel="noreferrer"><code>http://localhost:8501</code></a>. On first boot the image build takes a couple of minutes; subsequent <code>docker compose up</code> calls use the cache and start in seconds.</p>
+
+    <h2>What you get</h2>
+    <p>A multi-page Streamlit UI backed by the same reveilio library you'd get from PyPI:</p>
+    <table>
+      <thead><tr><th>Page</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Configure</strong></td><td>Pick a provider (Gemini / OpenAI / Azure OpenAI / Ollama) and enter credentials. Optionally connect a database (SQLite / PostgreSQL / MySQL / MongoDB).</td></tr>
+        <tr><td><strong>Analyze</strong></td><td>Upload a job description (PDF, DOCX, DOC, TXT, or paste text) plus a single resume or a zip archive of many. Returns ranked, scored results. Optional one-click save to the connected database.</td></tr>
+        <tr><td><strong>Database</strong></td><td>Browse stored analyses, filter by score / recommendation / candidate / job title, delete records.</td></tr>
+        <tr><td><strong>Reports</strong></td><td>Download polished PDF reports for individual candidates or the full batch ranking.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Persistence</h2>
+    <p>The Compose file mounts a named volume <code>reveilio-data</code> at <code>/data</code> inside the container. The default SQLite filepath suggested by the Configure form is <code>/data/reveilio.db</code>, so your analyses survive container restarts.</p>
+
+    <p>To wipe all stored analyses:</p>
+<pre><code>docker compose down -v</code></pre>
+
+    <div class="tip">
+      <strong>Tip:</strong> the <code>-v</code> flag removes the named volume. Without it, <code>docker compose down</code> stops the container but keeps the data for the next run.
+    </div>
+
+    <h2>Connecting to an external database</h2>
+    <p>PostgreSQL, MySQL, and MongoDB are <strong>not</strong> bundled into the image — you bring your own. In the Configure → Database form:</p>
+    <ul>
+      <li>On macOS / Windows (Docker Desktop), use <code>host.docker.internal</code> to reach a DB running on your host machine.</li>
+      <li>On Linux, use the host's IP on the Docker bridge (usually <code>172.17.0.1</code>), or run the DB in the same Compose network.</li>
+      <li>For a managed DB (e.g. RDS, Cloud SQL, Atlas), use the public hostname as you would from anywhere else.</li>
+    </ul>
+
+    <h2>Seeding provider credentials via env vars</h2>
+    <p>If you'd rather not type API keys into the UI each time, pass them into Compose. Any variable set in your shell or <code>.env</code> is forwarded to the container automatically:</p>
+<pre><code># .env next to docker-compose.yml
+GEMINI_API_KEY=AIza...
+OPENAI_API_KEY=sk-...
+OLLAMA_BASE_URL=http://host.docker.internal:11434</code></pre>
+    <p>The UI form still takes precedence — env vars are just fallbacks, matching the behavior of <code>reveilio.configure()</code> from the library.</p>
+
+    <h2>Updating to a new version</h2>
+<pre><code>git pull
+docker compose up --build</code></pre>
+    <p>The Compose build respects Docker's layer cache, so only layers downstream of a changed file are rebuilt.</p>
+
+    <h2>Container internals</h2>
+    <p>The image is a single-stage <code>python:3.11-slim</code> with:</p>
+    <ul>
+      <li><code>antiword</code> installed for legacy <code>.doc</code> parsing (same system dep called out in <a href="installation.html">Installation</a>).</li>
+      <li>The reveilio library installed from source in editable mode with the <code>[all-db]</code> extra so every backend works without rebuild.</li>
+      <li>Streamlit and pandas installed from <code>ui/requirements.txt</code>.</li>
+      <li>A healthcheck that polls <code>/_stcore/health</code> every 30 seconds.</li>
+    </ul>
+
+    <h2>Relationship to the PyPI package</h2>
+    <p>The Docker image and the PyPI wheel are entirely independent distribution channels:</p>
+    <ul>
+      <li>The wheel (<code>pip install reveilio</code>) contains only <code>src/reveilio/</code>. It does not include the <code>ui/</code>, <code>Dockerfile</code>, or <code>docker-compose.yml</code>.</li>
+      <li>Streamlit is <strong>not</strong> a runtime dependency of the library. It lives only in <code>ui/requirements.txt</code>, installed inside the container.</li>
+      <li>New reveilio releases flow the same way as before: tag, build wheel, publish to PyPI. The Docker option is additive.</li>
+    </ul>
+
+    <h2>Security notes</h2>
+    <ul>
+      <li>The UI has <strong>no authentication</strong>. Run it on <code>localhost</code> or behind your own reverse proxy / VPN — do not expose port 8501 to the public internet.</li>
+      <li>API keys entered via the form live only in Streamlit session state and are never written to disk.</li>
+      <li>Uploaded JDs and resumes are written to <code>tempfile.NamedTemporaryFile</code> paths inside the container and cleaned up by the OS.</li>
+    </ul>
+
+    <footer>© 2026 Reveilio</footer>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      var code = pre.querySelector('code');
+      var text = (code || pre).textContent;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>

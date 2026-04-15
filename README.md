@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/logo.png" alt="Reveilio logo" width="120" />
+  <img src="https://raw.githubusercontent.com/roosterhr/reveilio/main/docs/assets/logo.png" alt="Reveilio logo" width="120" />
 </p>
 
 <h1 align="center">reveilio</h1>
@@ -54,6 +54,23 @@ for r in results:
 reveilio.save_report_pdf(result, "alice_report.pdf")
 reveilio.save_batch_report_pdf(results, "batch_ranking.pdf")
 ```
+
+## Run with Docker (Streamlit UI)
+
+Prefer a UI over writing Python? Clone the repo and run:
+
+```bash
+docker compose up --build
+```
+
+Then open `http://localhost:8501` in your browser. The Streamlit UI exposes
+every reveilio feature — LLM provider configuration, JD parsing, single or
+batch resume scoring, database storage, and PDF report downloads.
+
+The Docker image and the PyPI wheel are independent distribution channels.
+`pip install reveilio` is unaffected by the UI — Streamlit is not a runtime
+dependency of the library. See [docs/docker.html](docs/docker.html) for
+details, persistence, and connecting to external databases.
 
 ## Supported inputs
 
