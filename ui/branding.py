@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import base64
-from pathlib import Path
+import urllib.request
 
 import streamlit as st
 
@@ -11,14 +11,17 @@ LOGO_PATH = "https://raw.githubusercontent.com/roosterhr/reveilio/main/docs/asse
 
 
 def _logo_path() -> str | None:
-    return str(LOGO_PATH) if LOGO_PATH.exists() else None
+    return LOGO_PATH
 
 
 def _logo_data_uri() -> str | None:
-    if not LOGO_PATH.exists():
+    try:
+        with urllib.request.urlopen(LOGO_PATH, timeout=5) as resp:
+            data = resp.read()
+        encoded = base64.b64encode(data).decode("ascii")
+        return f"data:image/png;base64,{encoded}"
+    except Exception:
         return None
-    encoded = base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
-    return f"data:image/png;base64,{encoded}"
 
 
 def init_page(title: str = "reveilio", icon: str = "📄") -> None:
